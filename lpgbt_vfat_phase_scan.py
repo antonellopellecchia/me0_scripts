@@ -204,14 +204,14 @@ def find_phase_center(err_list):
 
     # cover the case when there are no edges, just pick the center
     if (ngood==len(err_list_doubled)):
-        ngood_max  = ngood/2
+        ngood_max  = int(ngood/2)
         ngood_edge =len(err_list_doubled)-1
 
     if (ngood_max>0):
         ngood_width = ngood_max
         # even windows
         if (ngood_max % 2 == 0):
-            ngood_center=ngood_edge-(ngood_max/2)-1;
+            ngood_center=ngood_edge-(ngood_max/2)-1
             if (err_list_doubled[ngood_edge] > err_list_doubled[ngood_edge-ngood_max-1]):
                 ngood_center=ngood_center
             else:

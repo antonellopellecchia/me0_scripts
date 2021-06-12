@@ -51,7 +51,7 @@ VFAT_TO_GBT_ELINK_GPIO_ME0 = {
         13 : ("sub"  , 5, 11, 11),
         4  : ("boss" , 4, 3,  0),
         5  : ("boss" , 4, 27, 2),
-        12 : ("boss" , 4, 25),
+        12 : ("boss" , 4, 25, 8),
 
         23 : ("sub"  , 7, 6,  10),
         22 : ("sub"  , 7, 24, 9),
@@ -61,7 +61,38 @@ VFAT_TO_GBT_ELINK_GPIO_ME0 = {
         14 : ("boss" , 6, 25, 8),
 }
 
+VFAT_TO_SBIT_ELINK_ME0 = {
+    17 : [3, 13, 5, 1, 0, 2, 12, 4],
+    16 : [18, 21, 20, 23, 22, 27, 26, 25],
+    9  : [17, 19, 14, 7, 9, 10, 15, 8],
+    8  : [6, 7, 9, 4, 5, 2, 0, 1],
+    1  : [15, 14, 12, 10, 11, 13, 19, 17],
+    0  : [16, 18, 20, 22, 24, 26, 21, 23],
+
+    19 : [3, 13, 5, 1, 0, 2, 12, 4],
+    18 : [18, 21, 20, 23, 22, 27, 26, 25],
+    11 : [17, 19, 14, 7, 9, 10, 15, 8],
+    10 : [6, 7, 9, 4, 5, 2, 0, 1],
+    3  : [15, 14, 12, 10, 11, 13, 19, 17],
+    2  : [16, 18, 20, 22, 24, 26, 21, 23],
+
+    21 : [3, 13, 5, 1, 0, 2, 12, 4],
+    20 : [18, 21, 20, 23, 22, 27, 26, 25],
+    13 : [17, 19, 14, 7, 9, 10, 15, 8],
+    4  : [6, 7, 9, 4, 5, 2, 0, 1],
+    5  : [15, 14, 12, 10, 11, 13, 19, 17],
+    12 : [16, 18, 20, 22, 24, 26, 21, 23],
+
+    23 : [3, 13, 5, 1, 0, 2, 12, 4],
+    22 : [18, 21, 20, 23, 22, 27, 26, 25],
+    15 : [17, 19, 14, 7, 9, 10, 15, 8],
+    6  : [6, 7, 9, 4, 5, 2, 0, 1],
+    7  : [15, 14, 12, 10, 11, 13, 19, 17],
+    14 : [16, 18, 20, 22, 24, 26, 21, 23],
+}
+
 VFAT_TO_GBT_ELINK_GPIO = VFAT_TO_GBT_ELINK_GPIO_ME0
+VFAT_TO_SBIT_ELINK = VFAT_TO_SBIT_ELINK_ME0
 
 # Registers to read/write
 vfat_registers = {
@@ -324,6 +355,10 @@ def vfat_to_gbt_elink_gpio(vfat):
     elink = VFAT_TO_GBT_ELINK_GPIO[vfat][2]
     gpio = VFAT_TO_GBT_ELINK_GPIO[vfat][3]
     return lpgbt, gbtid, elink, gpio
+
+def vfat_to_sbit_elink(vfat):
+    sbit_elinks = VFAT_TO_SBIT_ELINK[vfat]
+    return sbit_elinks
 
 def enable_hdlc_addressing(addr_list):
     for vfat in addr_list:

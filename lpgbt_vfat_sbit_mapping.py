@@ -115,7 +115,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, nl1a, l1a_bxgap):
                         if sbit_channel_match == 1:
                             print (Colors.RED + "ERROR: Multiple S-bits registered hits for calpulse on channel %02d"%(channel) + Colors.ENDC)
                             rw_terminate()
-                        if s_bit_matches[sbit] > 2:
+                        if s_bit_matches[sbit] >= 2:
                             print (Colors.RED + "ERROR: S-bit %02d already matched to 2 channels"%(sbit) + Colors.ENDC)
                             rw_terminate()
                         if s_bit_matches[sbit] == 1:
@@ -128,14 +128,14 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, nl1a, l1a_bxgap):
                         s_bit_channel_mapping[vfat][elink][channel] = sbit
                         sbit_channel_match = 1
                         s_bit_matches[sbit] += 1
-                    # End of S-bit loop for this channel
+                # End of S-bit loop for this channel
 
                 # Disabling the pulsing channels
                 enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
-                # End of Channel loop
+            # End of Channel loop
 
             print ("")
-            # End of Elink loop
+        # End of Elink loop
 
         # Unconfigure the pulsing VFAT
         print("Unconfiguring VFAT %02d" % (vfat))
