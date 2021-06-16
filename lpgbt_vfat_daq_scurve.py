@@ -129,7 +129,7 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
         print ("Injected Charge: %d"%charge)
        	for vfat in vfat_list:
             lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.CFG_CAL_DAC"%(oh_select, vfat-6*oh_select)), charge)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.CFG_CAL_DAC"%(oh_select, vfat-6*oh_select)), c)
 
         # Looping over channels
         for channel in range(0, 128):
