@@ -132,22 +132,28 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, nl1a, l1a_bxgap, best_phase):
                         calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
 
                         if (elink_sbit_counter_final - elink_sbit_counter_initial) == 0:
+                            # Elink did not register a hit
+                            s_bit_channel_mapping[vfat][elink][channel] = -9999
                             break
                         channel_sbit_counter_final[sbit] = read_backend_reg(channel_sbit_counter_node)
 
                         if (channel_sbit_counter_final[sbit] - channel_sbit_counter_initial[sbit]) > 0:
                             if sbit_channel_match == 1:
                                 # Multiple S-bits registered hits for calpulse on this channel
+                                s_bit_channel_mapping[vfat][elink][channel] = -9999
                                 break
                             if s_bit_matches[sbit] >= 2:
                                 # S-bit already matched to 2 channels
+                                s_bit_channel_mapping[vfat][elink][channel] = -9999
                                 break
                             if s_bit_matches[sbit] == 1:
                                 if s_bit_channel_mapping[vfat][elink][channel-1] != sbit:
                                     # S-bit matched to a different channel than the previous one
+                                    s_bit_channel_mapping[vfat][elink][channel] = -9999
                                     break
                                 if channel%2==0:
                                     # S-bit already matched to an earlier odd numbered channel"
+                                    s_bit_channel_mapping[vfat][elink][channel] = -9999
                                     break
                             s_bit_channel_mapping[vfat][elink][channel] = sbit
                             sbit_channel_match = 1
@@ -208,7 +214,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, nl1a, l1a_bxgap, best_phase):
                 sys.stdout.write(Colors.GREEN + " (center=%d, width=%d) GOOD\n" % (centers[elink], widths[elink]) + Colors.ENDC)
             sys.stdout.flush()
 
-        # set phases for all elinks under for this vfat
+        # set phases for all elinks for this vfat
         print ("\nVFAT %02d: Setting all ELINK phases to best phases: "%(vfat))
         sbit_elinks = vfat_to_sbit_elink(vfat)
         for elink in range(0,8):
@@ -354,6 +360,9 @@ if __name__ == '__main__':
         if int(args.bestphase, 16)>16:
             print (Colors.YELLOW + "Phase can only be 4 bits" + Colors.ENDC)
             sys.exit()
+    else:
+        print (Colors.YELLOW + "Enter the phase you want to set for the VFATs" + Colors.ENDC)
+        sys.exit()
 
     if args.addr is not None:
         print ("Enabling VFAT addressing for plugin cards on slots: ")
