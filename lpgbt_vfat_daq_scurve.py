@@ -125,7 +125,7 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
         #if cal_mode[vfat] == 1:
         #    charge = 255 - c
         #else:
-        #    charge = c
+        charge = c
         print ("Injected Charge: %d"%charge)
        	for vfat in vfat_list:
             lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
