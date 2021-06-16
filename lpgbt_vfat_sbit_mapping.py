@@ -149,23 +149,28 @@ def lpgbt_vfat_sbit(system, vfat_list, nl1a, l1a_bxgap):
                         rw_terminate()
                     if system!="dryrun" and (elink_sbit_counter_final - elink_sbit_counter_initial) == 0:
                         print (Colors.YELLOW + "WARNING: Elink %02d did not register any S-bit for calpulse on channel %02d"%(elink, channel) + Colors.ENDC)
+                        s_bit_channel_mapping[vfat][elink][channel] = -9999
                         break
                     channel_sbit_counter_final[sbit] = read_backend_reg(channel_sbit_counter_node)
 
                     if (channel_sbit_counter_final[sbit] - channel_sbit_counter_initial[sbit]) > 0:
                         if sbit_channel_match == 1:
-                            print (Colors.RED + "ERROR: Multiple S-bits registered hits for calpulse on channel %02d"%(channel) + Colors.ENDC)
-                            rw_terminate()
+                            print (Colors.YELLOW + "WARNING: Multiple S-bits registered hits for calpulse on channel %02d"%(channel) + Colors.ENDC)
+                            s_bit_channel_mapping[vfat][elink][channel] = -9999
+                            break
                         if s_bit_matches[sbit] > 2:
-                            print (Colors.RED + "ERROR: S-bit %02d already matched to 2 channels"%(sbit) + Colors.ENDC)
-                            rw_terminate()
+                            print (Colors.YELLOW + "WARNING: S-bit %02d already matched to 2 channels"%(sbit) + Colors.ENDC)
+                            s_bit_channel_mapping[vfat][elink][channel] = -9999
+                            break
                         if s_bit_matches[sbit] == 1:
                             if s_bit_channel_mapping[vfat][elink][channel-1] != sbit:
-                                print (Colors.RED + "ERROR: S-bit %02d matched to a different channel than the previous one"%(sbit) + Colors.ENDC)
-                                rw_terminate()
+                                print (Colors.YELLOW + "WARNING: S-bit %02d matched to a different channel than the previous one"%(sbit) + Colors.ENDC)
+                                s_bit_channel_mapping[vfat][elink][channel] = -9999
+                                break
                             if channel%2==0:
-                                print (Colors.RED + "ERROR: S-bit %02d already matched to an earlier odd numbered channel"%(sbit) + Colors.ENDC)
-                                rw_terminate()
+                                print (Colors.YELLOW + "WARNING: S-bit %02d already matched to an earlier odd numbered channel"%(sbit) + Colors.ENDC)
+                                s_bit_channel_mapping[vfat][elink][channel] = -9999
+                                break
                         s_bit_channel_mapping[vfat][elink][channel] = sbit
                         sbit_channel_match = 1
                         s_bit_matches[sbit] += 1
