@@ -78,7 +78,7 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
         daq_data[vfat] = {}
         for channel in range(0,128):
             daq_data[vfat][channel] = {}
-            for charge in range(0,256,16):
+            for charge in range(0,256,1):
                 daq_data[vfat][channel][charge] = {}
                 daq_data[vfat][channel][charge]["events"] = -9999
                 daq_data[vfat][channel][charge]["fired"] = -9999
@@ -106,7 +106,7 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), l1a_bxgap)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), nl1a)
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 50) # 25 BX between Calpulse and L1A
+    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 50) # 50 BX between Calpulse and L1A
 
     # Setup the DAQ monitor
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
@@ -121,11 +121,11 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
     print ("")
 
     # Looping over charge
-    for c in range(0,256,16):
-        #if cal_mode[vfat] == 1:
-        #    charge = 255 - c
-        #else:
-        charge = c
+    for c in range(0,256,1):
+        if cal_mode[vfat] == 1:
+            charge = 255 - c
+        else:
+            charge = c
         print ("Injected Charge: %d"%charge)
        	for vfat in vfat_list:
             lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
@@ -179,7 +179,7 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
     # Writing Results
     for vfat in vfat_list:
         for channel in range(0,128):
-            for charge in range(0,256,16):
+            for charge in range(0,256,1):
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel, charge, daq_data[vfat][channel][charge]["fired"], daq_data[vfat][channel][charge]["events"]))
 
     print ("")
