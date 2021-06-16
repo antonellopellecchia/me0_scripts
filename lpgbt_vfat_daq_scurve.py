@@ -133,14 +133,14 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
 
         # Looping over channels
         for channel in range(0, 128):
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT"), channel)
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET"), 1)
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
-
             for vfat in vfat_list:
                 lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
                 write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+                
+            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT"), channel)
+            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET"), 1)
+            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
 
 		    # Start the cyclic generator
             l1a_counter_initial = read_backend_reg(l1a_node)
