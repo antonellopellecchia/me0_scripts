@@ -159,6 +159,10 @@ Use -h option for any script to check usage
 
 ```lpgbt_vfat_config.py```: configure VFAT
 
+```lpgbt_vfat_daq_scurve.py```: SCurve using DAQ data for VFATs
+
+```lpgbt_vfat_daq_scurve_plot.py```: SCurve Plotting for DAQ data for VFATs
+
 ```lpgbt_vfat_daq_test.py```: bit error ratio tests by reading DAQ data packets from VFATs
 
 ```lpgbt_vfat_elink_scan.py```: scan VFAT vs elink 
