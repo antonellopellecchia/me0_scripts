@@ -168,7 +168,7 @@ def lpgbt_phase_scan(system, vfat_list, daq_err, depth, best_phase):
                         if daq_event_counter == 1000000%256:
                             daq_crc_error[vfat][phase] = read_backend_reg(get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.DAQ_CRC_ERROR_CNT" % (oh_select, vfat-6*oh_select)))
                         else:
-                            print (Colors.YELLOW + "Problem with DAQ event counter=%d"%(daq_event_counter) + Colors.ENDC)
+                            print (Colors.YELLOW + "\tProblem with DAQ event counter=%d"%(daq_event_counter) + Colors.ENDC)
                     write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_RUN"%(oh_select,vfat-6*oh_select)), 0)
             else:
                 daq_crc_error[vfat][phase]=0
