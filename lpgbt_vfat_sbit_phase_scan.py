@@ -360,9 +360,6 @@ if __name__ == '__main__':
         if int(args.bestphase, 16)>16:
             print (Colors.YELLOW + "Phase can only be 4 bits" + Colors.ENDC)
             sys.exit()
-    else:
-        print (Colors.YELLOW + "Enter the phase you want to set for the VFATs" + Colors.ENDC)
-        sys.exit()
         
     # Parsing Registers XML File
     print("Parsing xml file...")
