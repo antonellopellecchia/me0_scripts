@@ -378,7 +378,7 @@ if __name__ == '__main__':
         if args.test == "1":
             lpgbt_communication_test(args.system, int(args.ohid), vfat_list, int(args.depth))
         else:
-            lpgbt_phase_scan(args.system, int(args.ohid), vfat_list, args.daq_err, int(args.depth), args.bestphase)
+            lpgbt_phase_scan(args.system, int(args.ohid), args.daq_err, vfat_list, int(args.depth), args.bestphase)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
