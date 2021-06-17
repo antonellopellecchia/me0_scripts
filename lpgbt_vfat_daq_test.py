@@ -375,10 +375,6 @@ if __name__ == '__main__':
     if args.calpulse:
         print ("Calpulsing enabled for all channels for given VFATs")
 
-    if args.addr:
-        print ("Enabling VFAT addressing for plugin cards")
-        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.USE_VFAT_ADDRESSING"), 1)
-        
     # Parsing Registers XML File
     print("Parsing xml file...")
     parseXML()
@@ -387,6 +383,10 @@ if __name__ == '__main__':
     # Initialization (for CHeeseCake: reset and config_select)
     rw_initialize(args.system)
     print("Initialization Done\n")
+
+    if args.addr:
+        print ("Enabling VFAT addressing for plugin cards")
+        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.USE_VFAT_ADDRESSING"), 1)
     
     # Running Phase Scan
     try:

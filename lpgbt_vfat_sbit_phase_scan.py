@@ -411,10 +411,6 @@ if __name__ == '__main__':
     nl1a = 100 # Nr. of L1A's
     l1a_bxgap = 500 # Gap between 2 L1A's in nr. of BX's
 
-    if args.addr:
-        print ("Enabling VFAT addressing for plugin cards")
-        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.USE_VFAT_ADDRESSING"), 1)
-
     if args.bestphase is not None:
         if "0x" not in args.bestphase:
             print (Colors.YELLOW + "Enter best phase in hex format" + Colors.ENDC)
@@ -434,6 +430,10 @@ if __name__ == '__main__':
     # Initialization (for CHeeseCake: reset and config_select)
     rw_initialize(args.system)
     print("Initialization Done\n")
+
+    if args.addr:
+        print ("Enabling VFAT addressing for plugin cards")
+        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.USE_VFAT_ADDRESSING"), 1)
 
     if not os.path.isfile(config_boss_filename):
         print (Colors.YELLOW + "Missing config file for boss: config_boss.txt" + Colors.ENDC)

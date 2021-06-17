@@ -191,10 +191,6 @@ if __name__ == '__main__':
             sys.exit()
         vfat_list.append(vfat)
 
-    if args.addr:
-        print ("Enabling VFAT addressing for plugin cards")
-        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.USE_VFAT_ADDRESSING"), 1)
-
     if args.config not in ["0", "1"]:
         print (Colors.YELLOW + "Only allowed options for configure: 0 and 1" + Colors.ENDC)
         sys.exit()
@@ -208,6 +204,10 @@ if __name__ == '__main__':
     # Initialization (for CHeeseCake: reset and config_select)
     rw_initialize(args.system)
     print("Initialization Done\n")
+
+    if args.addr:
+        print ("Enabling VFAT addressing for plugin cards")
+        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.USE_VFAT_ADDRESSING"), 1)
     
     # Running Phase Scan
     try:
