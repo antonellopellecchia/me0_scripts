@@ -133,6 +133,15 @@ if __name__ == '__main__':
             sys.exit()
         vfat_list.append(v_int)
 
+    # Parsing Registers XML File
+    print("Parsing xml file...")
+    parseXML()
+    print("Parsing complete...")
+
+    # Initialization (for CHeeseCake: reset and config_select)
+    rw_initialize(args.system)
+    print("Initialization Done\n")
+
     if args.addr is not None:
         print ("Enabling VFAT addressing for plugin cards on slots: ")
         print (args.addr)
@@ -144,15 +153,6 @@ if __name__ == '__main__':
                 sys.exit()
             addr_list.append(a_int)
         enable_hdlc_addressing(addr_list)
-
-    # Parsing Registers XML File
-    print("Parsing xml file...")
-    parseXML()
-    print("Parsing complete...")
-
-    # Initialization (for CHeeseCake: reset and config_select)
-    rw_initialize(args.system)
-    print("Initialization Done\n")
     
     if not os.path.isfile(config_boss_filename):
         print (Colors.YELLOW + "Missing config file for boss: config_boss.txt" + Colors.ENDC)

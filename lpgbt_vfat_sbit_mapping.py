@@ -222,6 +222,15 @@ if __name__ == '__main__':
 
     nl1a = 100 # Nr. of L1A's
     l1a_bxgap = 500 # Gap between 2 L1A's in nr. of BX's
+        
+    # Parsing Registers XML File
+    print("Parsing xml file...")
+    parseXML()
+    print("Parsing complete...")
+
+    # Initialization (for CHeeseCake: reset and config_select)
+    rw_initialize(args.system)
+    print("Initialization Done\n")
 
     if args.addr is not None:
         print ("Enabling VFAT addressing for plugin cards on slots: ")
@@ -234,15 +243,6 @@ if __name__ == '__main__':
                 sys.exit()
             addr_list.append(a_int)
         enable_hdlc_addressing(addr_list)
-        
-    # Parsing Registers XML File
-    print("Parsing xml file...")
-    parseXML()
-    print("Parsing complete...")
-
-    # Initialization (for CHeeseCake: reset and config_select)
-    rw_initialize(args.system)
-    print("Initialization Done\n")
     
     # Running Phase Scan
     try:

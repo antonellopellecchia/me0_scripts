@@ -285,6 +285,15 @@ if __name__ == '__main__':
                 print (Colors.YELLOW + "Invalid VFAT number for selected lpGBT" + Colors.ENDC)
                 sys.exit()
             vfat_list.append(v_int)
+        
+    # Parsing Registers XML File
+    print("Parsing xml file...")
+    parseXML()
+    print("Parsing complete...")
+
+    # Initialization (for CHeeseCake: reset and config_select)
+    rw_initialize(args.system, boss, args.ohid, args.gbtid)
+    print("Initialization Done\n")
 
     if args.addr is not None:
         print ("Enabling VFAT addressing for plugin cards on slots: ")
@@ -297,15 +306,6 @@ if __name__ == '__main__':
                 sys.exit()
             addr_list.append(a_int)
         enable_hdlc_addressing(addr_list)
-        
-    # Parsing Registers XML File
-    print("Parsing xml file...")
-    parseXML()
-    print("Parsing complete...")
-
-    # Initialization (for CHeeseCake: reset and config_select)
-    rw_initialize(args.system, boss, args.ohid, args.gbtid)
-    print("Initialization Done\n")
     
     # Readback rom register to make sure communication is OK
     if args.system!="dryrun" and args.system!="backend":

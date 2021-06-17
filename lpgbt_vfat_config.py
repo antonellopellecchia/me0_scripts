@@ -149,18 +149,6 @@ if __name__ == '__main__':
             sys.exit()
         vfat_list.append(v_int)
 
-    if args.addr is not None:
-        print ("Enabling VFAT addressing for plugin cards on slots: ")
-        print (args.addr)
-        addr_list = []
-        for a in args.addr:
-            a_int = int(a)
-            if a_int not in range(0,24):
-                print (Colors.YELLOW + "Invalid VFAT number for HDLC addressing, only allowed 0-23" + Colors.ENDC)
-                sys.exit()
-            addr_list.append(a_int)
-        enable_hdlc_addressing(addr_list)
-
     if args.config not in ["0", "1"]:
         print (Colors.YELLOW + "Only allowed options for configure: 0 and 1" + Colors.ENDC)
         sys.exit()
@@ -174,6 +162,18 @@ if __name__ == '__main__':
     # Initialization (for CHeeseCake: reset and config_select)
     rw_initialize(args.system)
     print("Initialization Done\n")
+
+    if args.addr is not None:
+        print ("Enabling VFAT addressing for plugin cards on slots: ")
+        print (args.addr)
+        addr_list = []
+        for a in args.addr:
+            a_int = int(a)
+            if a_int not in range(0,24):
+                print (Colors.YELLOW + "Invalid VFAT number for HDLC addressing, only allowed 0-23" + Colors.ENDC)
+                sys.exit()
+            addr_list.append(a_int)
+        enable_hdlc_addressing(addr_list)
     
     # Running Phase Scan
     try:
