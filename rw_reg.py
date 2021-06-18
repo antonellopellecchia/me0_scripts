@@ -32,6 +32,8 @@ boardType = os.environ.get('BOARD_TYPE')
 if boardType is None:
     boardType = "cvp13"
 DEVICE = CONFIG_RWREG[boardType]['DEVICE']
+if sys.version_info[0] == 3:
+    DEVICE = CONFIG_RWREG[boardType]['DEVICE'].encode()
 BASE_ADDR = CONFIG_RWREG[boardType]['BASE_ADDR']
 
 class Node:
@@ -109,7 +111,7 @@ def parseXML():
 
 def makeTree(node,baseName,baseAddress,nodes,parentNode,vars,isGenerated):
 
-    if node.get('id') is None:
+    if node.get('id') is None or (node.get('ignore') is not None and eval(node.get('ignore')) == True):
         return
 
     if (isGenerated == None or isGenerated == False) and node.get('generate') is not None and node.get('generate') == 'true':
