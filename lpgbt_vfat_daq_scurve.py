@@ -134,7 +134,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
     # Writing Results
     for vfat in vfat_list:
         for channel in range(0,128):
-            for charge in range(0,256,step):
+            for charge in range(0,256,1):
                 if charge not in daq_data[vfat][channel]:
                     continue
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel, charge, daq_data[vfat][channel][charge]["fired"], daq_data[vfat][channel][charge]["events"]))
