@@ -26,14 +26,6 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
     cal_mode = {}
     # Check ready and get nodes
     for vfat in vfat_list:
-        daq_data[vfat] = {}
-        for channel in range(0,128):
-            daq_data[vfat][channel] = {}
-            for charge in range(0,256,1):
-                daq_data[vfat][channel][charge] = {}
-                daq_data[vfat][channel][charge]["events"] = -9999
-                daq_data[vfat][channel][charge]["fired"] = -9999
-        
         lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
         check_lpgbt_link_ready(oh_select, gbt_select)
 
@@ -50,6 +42,18 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
         if system!="dryrun" and (link_good == 0 or sync_err > 0):
             print (Colors.RED + "Link is bad for VFAT# %02d"%(vfat) + Colors.ENDC)
             rw_terminate()
+
+        daq_data[vfat] = {}
+        for channel in range(0,128):
+            daq_data[vfat][channel] = {}
+            for charge in range(0,256,step):
+                if cal_mode[vfat] == 1:
+                    charge = 255 - c
+                else:
+                    charge = c
+                daq_data[vfat][channel][charge] = {}
+                daq_data[vfat][channel][charge]["events"] = -9999
+                daq_data[vfat][channel][charge]["fired"] = -9999
 
     # Configure TTC generator
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET"), 1)
@@ -128,13 +132,9 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
         configureVfat(0, vfat, oh_select, 0)
 
     # Writing Results
-    for vfat in vfat_list:
-        for channel in range(0,128):
-            for c in range(0,256,step):
-                if cal_mode[vfat] == 1:
-                    charge = 255 - c
-                else:
-                    charge = c
+    for vfat in daq_data:
+        for channel in daq_data[vfat]:
+            for charge in daq_data[vfat][channel]:
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel, charge, daq_data[vfat][channel][charge]["fired"], daq_data[vfat][channel][charge]["events"]))
 
     print ("")
