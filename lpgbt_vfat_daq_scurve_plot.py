@@ -44,7 +44,7 @@ if __name__ == '__main__':
             for c in charge:
                 frac.append(scurve_result[vfat][channel][c])
             ax.plot(charge, frac, 'o', label="Channel %d"%channel)
-        leg = ax.legend(loc='center left', ncol=2)
+        leg = ax.legend(loc='center right', ncol=2)
         plt.title("VFAT# %02d"%vfat)
         plt.savefig((plot_filename_prefix+"_VFAT%02d.pdf")%vfat)
 
