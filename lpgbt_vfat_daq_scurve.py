@@ -7,7 +7,7 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_scurve(system, oh_select, vfat_list, nl1a, l1a_bxgap):
+def lpgbt_vfat_scurve(system, oh_select, step, vfat_list, nl1a, l1a_bxgap):
     if not os.path.exists("daq_scurve_results"):
         os.makedirs("daq_scurve_results")
     now = str(datetime.datetime.now())[:16]
@@ -72,7 +72,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, nl1a, l1a_bxgap):
     print ("")
 
     # Looping over charge
-    for c in range(0,256,1):
+    for c in range(0,256,step):
         if cal_mode[vfat] == 1:
             charge = 255 - c
         else:
@@ -130,7 +130,11 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, nl1a, l1a_bxgap):
     # Writing Results
     for vfat in vfat_list:
         for channel in range(0,128):
-            for charge in range(0,256,1):
+            for c in range(0,256,1):
+                if cal_mode[vfat] == 1:
+                    charge = 255 - c
+                else:
+                    charge = c
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel, charge, daq_data[vfat][channel][charge]["fired"], daq_data[vfat][channel][charge]["events"]))
 
     print ("")
@@ -144,6 +148,7 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-1")
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0-7 (only needed for backend)")
     parser.add_argument("-v", "--vfats", action="store", nargs='+', dest="vfats", help="vfats = list of VFAT numbers (0-23)")
+    parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
     parser.add_argument("-a", "--addr", action="store", nargs='+', dest="addr", help="addr = list of VFATs to enable HDLC addressing")
@@ -184,6 +189,11 @@ if __name__ == '__main__':
             print (Colors.YELLOW + "Invalid VFAT number, only allowed 0-23" + Colors.ENDC)
             sys.exit()
         vfat_list.append(v_int)
+
+    step = int(args.step)
+    if step not in range(1,257):
+        print (Colors.YELLOW + "Step size can only be between 1 and 256" + Colors.ENDC)
+        sys.exit()
 
     nl1a = 0
     if args.nl1a is not None:
@@ -226,7 +236,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_scurve(args.system, int(args.ohid), vfat_list, nl1a, l1a_bxgap)
+        lpgbt_vfat_scurve(args.system, int(args.ohid), vfat_list, step, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
