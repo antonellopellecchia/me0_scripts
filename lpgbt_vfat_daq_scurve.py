@@ -5,7 +5,6 @@ import sys
 import argparse
 import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
-from collections import OrderedDict
 
 
 def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
@@ -44,15 +43,15 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
             print (Colors.RED + "Link is bad for VFAT# %02d"%(vfat) + Colors.ENDC)
             rw_terminate()
 
-        daq_data[vfat] =  OrderedDict()
+        daq_data[vfat] = {}
         for channel in range(0,128):
-            daq_data[vfat][channel] = OrderedDict()
-            for c in range(0,256,step):
+            daq_data[vfat][channel] = {}
+            for charge in range(0,256,step):
                 if cal_mode[vfat] == 1:
                     charge = 255 - c
                 else:
                     charge = c
-                daq_data[vfat][channel][charge] = OrderedDict()
+                daq_data[vfat][channel][charge] = {}
                 daq_data[vfat][channel][charge]["events"] = -9999
                 daq_data[vfat][channel][charge]["fired"] = -9999
 
@@ -133,9 +132,11 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
         configureVfat(0, vfat, oh_select, 0)
 
     # Writing Results
-    for vfat in daq_data:
-        for channel in daq_data[vfat]:
-            for charge in daq_data[vfat][channel]:
+    for vfat in vfat_list:
+        for channel in range(0,128):
+            for charge in range(0,256,step):
+                if charge not in daq_data[vfat][channel]:
+                    continue
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel, charge, daq_data[vfat][channel][charge]["fired"], daq_data[vfat][channel][charge]["events"]))
 
     print ("")
