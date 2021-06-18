@@ -56,7 +56,7 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
+def lpgbt_vfat_scurve(system, vfat_list, step, nl1a, l1a_bxgap):
     if not os.path.exists("daq_scurve_results"):
         os.makedirs("daq_scurve_results")
     now = str(datetime.datetime.now())[:16]
@@ -75,14 +75,6 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
     cal_mode = {}
     # Check ready and get nodes
     for vfat in vfat_list:
-        daq_data[vfat] = {}
-        for channel in range(0,128):
-            daq_data[vfat][channel] = {}
-            for charge in range(0,256,1):
-                daq_data[vfat][channel][charge] = {}
-                daq_data[vfat][channel][charge]["events"] = -9999
-                daq_data[vfat][channel][charge]["fired"] = -9999
-
         lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
         check_lpgbt_link_ready(oh_select, gbt_select)
 
@@ -99,6 +91,18 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
         if system!="dryrun" and (link_good == 0 or sync_err > 0):
             print (Colors.RED + "Link is bad for VFAT# %02d"%(vfat) + Colors.ENDC)
             rw_terminate()
+
+        daq_data[vfat] = {}
+        for channel in range(0,128):
+            daq_data[vfat][channel] = {}
+            for c in range(0,256,step):
+                if cal_mode[vfat] == 1:
+                    charge = 255 - c
+                else:
+                    charge = c
+                daq_data[vfat][channel][charge] = {}
+                daq_data[vfat][channel][charge]["events"] = -9999
+                daq_data[vfat][channel][charge]["fired"] = -9999
 
     # Configure TTC generator
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET"), 1)
@@ -121,7 +125,7 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
     print ("")
 
     # Looping over charge
-    for c in range(0,256,1):
+    for c in range(0,256,step):
         if cal_mode[vfat] == 1:
             charge = 255 - c
         else:
@@ -177,9 +181,9 @@ def lpgbt_vfat_scurve(system, vfat_list, nl1a, l1a_bxgap):
         configureVfat(0, vfat-6*oh_select, oh_select, 0)
 
     # Writing Results
-    for vfat in vfat_list:
-        for channel in range(0,128):
-            for charge in range(0,256,1):
+    for vfat in daq_data:
+        for channel in daq_data[vfat]:
+            for charge in daq_data[vfat][channel]:
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel, charge, daq_data[vfat][channel][charge]["fired"], daq_data[vfat][channel][charge]["events"]))
 
     print ("")
@@ -193,6 +197,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--vfats", action="store", dest="vfats", nargs='+', help="vfats = list of VFATs (0-11) - only ones belonging to the same OH")
     #parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-7 (only needed for backend)")
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
+    parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
     parser.add_argument("-a", "--addr", action="store_true", dest="addr", help="if plugin card addressing needs should be enabled")
@@ -237,6 +242,11 @@ if __name__ == '__main__':
                 print (Colors.YELLOW + "Only VFATs belonging to the same OH allowed" + Colors.ENDC)
                 sys.exit()
 
+    step = int(args.step)
+    if step not in range(1,257):
+        print (Colors.YELLOW + "Step size can only be between 1 and 256" + Colors.ENDC)
+        sys.exit()
+
     nl1a = 0
     if args.nl1a is not None:
         nl1a = int(args.nl1a)
@@ -270,7 +280,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_scurve(args.system, vfat_list, nl1a, l1a_bxgap)
+        lpgbt_vfat_scurve(args.system, vfat_list, step, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
