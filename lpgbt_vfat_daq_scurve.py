@@ -7,7 +7,7 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_scurve(system, oh_select, step, vfat_list, nl1a, l1a_bxgap):
+def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
     if not os.path.exists("daq_scurve_results"):
         os.makedirs("daq_scurve_results")
     now = str(datetime.datetime.now())[:16]
