@@ -46,7 +46,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
         daq_data[vfat] = {}
         for channel in range(0,128):
             daq_data[vfat][channel] = {}
-            for charge in range(0,256,step):
+            for c in range(0,256,step):
                 if cal_mode[vfat] == 1:
                     charge = 255 - c
                 else:
