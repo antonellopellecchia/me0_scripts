@@ -78,9 +78,9 @@ def lpgbt_phase_scan(system, oh_select, daq_err, vfat_list, depth, best_phase):
         # Configure TTC Generator
         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET"), 1)
         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
-        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), 40) # 1 MHz
+        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), 500) # 80 kHz
         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 0) # Disable Calpulse
-        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), 1000000)
+        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), 10000)
 
         # read cfg_run some number of times, check link good status and sync errors
         print ("Checking errors: ")
@@ -123,7 +123,7 @@ def lpgbt_phase_scan(system, oh_select, daq_err, vfat_list, depth, best_phase):
                     if system == "dryrun":
                         daq_crc_error[vfat][phase] = read_backend_reg(get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.DAQ_CRC_ERROR_CNT" % (oh_select, vfat-6*oh_select)))
                     else:
-                        if daq_event_counter == 1000000%(2**16):
+                        if daq_event_counter == 10000%(2**16):
                             daq_crc_error[vfat][phase] = read_backend_reg(get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.DAQ_CRC_ERROR_CNT" % (oh_select, vfat-6*oh_select)))
                         else:
                             print (Colors.YELLOW + "\tProblem with DAQ event counter=%d"%(daq_event_counter) + Colors.ENDC)
@@ -192,7 +192,6 @@ def lpgbt_phase_scan(system, oh_select, daq_err, vfat_list, depth, best_phase):
 
     # Unconfigure VFATs
     #for vfat in vfat_list:
-    #    lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
     #    print("Unconfiguring VFAT %d" % (vfat))
     #    configureVfat(0, vfat, oh_select, 0)
 

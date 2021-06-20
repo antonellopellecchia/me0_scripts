@@ -90,6 +90,7 @@ def lpgbt_vfat_config(system, oh_select, vfat_list, low_thresh, configure):
 
     for vfat in vfat_list:
         lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
+        check_lpgbt_link_ready(oh_select, gbt_select)
         if configure:
             print ("Configuring VFAT#: %02d" %(vfat))
         else:

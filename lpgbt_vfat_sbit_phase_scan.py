@@ -79,7 +79,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, nl1a, l1a_bxgap, best_phase):
         s_bit_channel_mapping = {}
         print ("Checking errors: ")
         for vfat in vfat_list:
-            lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
+            lpgbt, gbt_select, elink_daq, gpio = vfat_to_gbt_elink_gpio(vfat)
             # Reset the link, give some time to accumulate any sync errors and then check VFAT comms
             sleep(0.1)
             vfat_oh_link_reset()

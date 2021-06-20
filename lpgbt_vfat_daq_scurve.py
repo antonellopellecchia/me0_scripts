@@ -16,7 +16,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
     foldername = "daq_scurve_results/"
     filename = foldername + "vfat_scurve_" + now + ".txt"
     file_out = open(filename,"w+")
-    file_out.write("vfatN    ch_inj    charge    fired    events\n")
+    file_out.write("vfatN    channel    charge    fired    events\n")
 
     vfat_oh_link_reset()
     global_reset()
@@ -66,6 +66,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
     # Setup the DAQ monitor
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_GLOBAL_OR"), 0)
+    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
 
     cyclic_running_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_RUNNING")
     l1a_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.L1A")
@@ -75,25 +76,23 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
     print (vfat_list)
     print ("")
 
-    # Looping over charge
-    for c in range(0,256,step):
-        if cal_mode[vfat] == 1:
-            charge = 255 - c
-        else:
-            charge = c
-        print ("Injected Charge: %d"%charge)
-       	for vfat in vfat_list:
-            lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
-            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.CFG_CAL_DAC"%(oh_select, vfat)), c)
-
-        # Looping over channels
-        for channel in range(0, 128):
-            for vfat in vfat_list:
-                lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
-                write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
-                enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
-
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT"), channel)
+    # Looping over channels
+    for channel in range(0, 128):
+        print ("Channel: %d"%channel)
+        for vfat in vfat_list:
+            enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT"), channel)
+        
+        # Looping over charge
+        for c in range(0,256,step):
+            if cal_mode[vfat] == 1:
+                charge = 255 - c
+            else:
+                charge = c
+            print ("    Injected Charge: %d"%charge)
+       	    for vfat in vfat_list:
+                write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.CFG_CAL_DAC"%(oh_select, vfat)), c)
+           
             write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET"), 1)
             write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
 
@@ -113,22 +112,22 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, step, nl1a, l1a_bxgap):
 
             # Looping over VFATs
             for vfat in vfat_list:
-                lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
                 daq_data[vfat][channel][charge]["events"] = read_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.GOOD_EVENTS_COUNT"%(vfat)))
                 daq_data[vfat][channel][charge]["fired"] = read_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.CHANNEL_FIRE_COUNT"%(vfat)))
-                enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask channel and disable calpulsing
             # End of VFAT loop
-        # End of channel loop
-    # End of charge loop
+        # End of charge loop
+        
+        for vfat in vfat_list:
+            enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask channel and disable calpulsing
+    # End of channel loop
     print ("")
 
     # Disable channels on VFATs
     for vfat in vfat_list:
-        lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
         enable_channel = 0
         print("Unconfiguring VFAT %d" % (vfat))
         for channel in range(0,128):
-            enableVfatchannel(vfat, oh_select, channel, 0, 0) # disable calpulsing on channel 0 for this VFAT
+            enableVfatchannel(vfat, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat, oh_select, 0)
 
     # Writing Results

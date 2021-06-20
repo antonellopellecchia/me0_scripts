@@ -26,7 +26,7 @@ except:
 
 DEBUG = True
 ADDRESS_TABLE_DEFAULT = './address_table/gem_amc_backup.xml'
-nodes = []
+nodes = {}
 
 boardType = os.environ.get('BOARD_TYPE')
 if boardType is None:
@@ -71,7 +71,7 @@ class Node:
 def main():
     parseXML()
     print ('Example:')
-    random_node = nodes[76]
+    random_node = nodes["GEM_AMC.GEM_SYSTEM.BOARD_ID"]
     #print (str(random_node.__class__.__name__))
     print ('Node:',random_node.name)
     print ('Parent:',random_node.parent.name)
@@ -160,22 +160,26 @@ def getAllChildren(node,kids=[]):
             getAllChildren(child,kids)
 
 def getNode(nodeName):
-    return next((node for node in nodes if node.name == nodeName),None)
+    thisnode = None
+    if nodeName in nodes:
+        thisnode = nodes[nodeName]
+    if (thisnode == None):
+        print (nodeName)
+    return thisnode
 
 def getNodeFromAddress(nodeAddress):
-    return next((node for node in nodes if node.real_address == nodeAddress),None)
+    return next((nodes[nodename] for nodename in nodes if nodes[nodename].real_address == nodeAddress),None)
 
 def getNodesContaining(nodeString):
-    nodelist = [node for node in nodes if nodeString in node.name]
+    nodelist = [nodes[nodename] for nodename in nodes if nodeString in nodename]
     if len(nodelist): return nodelist
     else: return None
 
 #returns *readable* registers
 def getRegsContaining(nodeString):
-    nodelist = [node for node in nodes if nodeString in node.name and node.permission is not None and 'r' in node.permission]
+    nodelist = [nodes[nodename] for nodename in nodes if nodeString in nodename and nodes[nodename].permission is not None and 'r' in nodes[nodename].permission]
     if len(nodelist): return nodelist
     else: return None
-
 
 def readAddress(address):
     output = rReg(address)
@@ -270,7 +274,7 @@ def completeReg(string):
     completions = []
     currentLevel = len([c for c in string if c=='.'])
 
-    possibleNodes = [node for node in nodes if node.name.startswith(string) and node.level == currentLevel]
+    possibleNodes = [nodes[nodename] for nodename in nodes if nodename.startswith(string) and nodes[nodename].level == currentLevel]
     if len(possibleNodes)==1:
         if possibleNodes[0].children == []: return [possibleNodes[0].name]
         for n in possibleNodes[0].children:
@@ -279,7 +283,6 @@ def completeReg(string):
         for n in possibleNodes:
             completions.append(n.name)
     return completions
-
 
 def parseError(e):
     if e==1:

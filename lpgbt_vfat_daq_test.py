@@ -241,7 +241,6 @@ def lpgbt_vfat_bert(system, oh_select, vfat_list, nl1a, runtime, l1a_bxgap, calp
 
     # Disable channels on VFATs
     for vfat in vfat_list:
-        lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
         enable_channel = 0
         print("Unconfiguring VFAT %d" % (vfat))
         file_out.write("Unconfiguring VFAT %d\n" % (vfat))
