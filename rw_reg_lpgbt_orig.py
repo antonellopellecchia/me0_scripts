@@ -3,7 +3,7 @@ import sys, os, subprocess
 
 DEBUG = True
 ADDRESS_TABLE_TOP = './address_table/lpgbt_registers.xml'
-nodes = {}
+nodes = []
 system = ""
 reg_list_dryrun = {}
 for i in range(462):
@@ -55,28 +55,15 @@ class Colors:
 
 def main():
     parseXML()
-    #for nodename in nodes:
-    #    print (i)
-    #    if (i>0):
-    #        nodes[nodename].output()
-    #    i=i+1
-
-    print ('Example1:')
-    print (getNode("LPGBT.RWF.CHIPID.CHIPID0").output())
-    
-    print ('\nExample2:')
-    for node in getNodesContaining("CHIPID"):
-        print (node.output())
-        
-    print ('\nExample3:')
-    print (getNodeFromAddress(0x00).output())
-    
-    print ('\nExample4:')
-    for node in getRegsContaining("CHIPID"):
-        print (node.output())
-        
-    print ('\nExample5:')
-    print (completeReg("LPGBT.RWF.CHIPID.CHIPID"))
+    print ('Example:')
+    random_node = nodes[1]
+    random_node.output()
+    i=0
+    for node in nodes:
+        print (i)
+        if (i>0):
+            node.output()
+        i=i+1
 
     #print (gbt.gbtx_read_register(320))
     #print str(random_node.__class__.__name__)
@@ -127,7 +114,7 @@ def makeTree(node,baseName,baseAddress,nodes,parentNode,vars,isGenerated,num_of_
     newNode.isModule = node.get('fw_is_module') is not None and node.get('fw_is_module') == 'true'
     if node.get('mode') is not None:
         newNode.mode = node.get('mode')
-    nodes[newNode.name] = newNode
+    nodes.append(newNode)
     if parentNode is not None:
         parentNode.addChild(newNode)
         newNode.parent = parentNode
@@ -144,23 +131,26 @@ def getAllChildren(node,kids=[]):
             getAllChildren(child,kids)
 
 def getNode(nodeName):
-    thisnode = None
-    if nodeName in nodes:
-        thisnode = nodes[nodeName]
+    thisnode = next(
+        (node for node in nodes if node.name == nodeName),None
+    )
     if (thisnode == None):
         print (nodeName)
     return thisnode
 
+def getNodebyID(number):
+    return nodes[number]
+
 def getNodeFromAddress(nodeAddress):
-    return next((nodes[nodename] for nodename in nodes if nodes[nodename].real_address == nodeAddress),None)
+    return next((node for node in nodes if node.real_address == nodeAddress),None)
 
 def getNodesContaining(nodeString):
-    nodelist = [nodes[nodename] for nodename in nodes if nodeString in nodename]
+    nodelist = [node for node in nodes if nodeString in node.name]
     if len(nodelist): return nodelist
     else: return None
 
 def getRegsContaining(nodeString):
-    nodelist = [nodes[nodename] for nodename in nodes if nodeString in nodename and nodes[nodename].permission is not None and 'r' in nodes[nodename].permission]
+    nodelist = [node for node in nodes if nodeString in node.name and node.permission is not None and 'r' in node.permission]
     if len(nodelist): return nodelist
     else: return None
 
@@ -569,7 +559,7 @@ def completeReg(string):
     completions = []
     currentLevel = len([c for c in string if c=='.'])
 
-    possibleNodes = [nodes[nodename] for nodename in nodes if nodename.startswith(string) and nodes[nodename].level == currentLevel]
+    possibleNodes = [node for node in nodes if node.name.startswith(string) and node.level == currentLevel]
     if len(possibleNodes)==1:
         if possibleNodes[0].children == []: return [possibleNodes[0].name]
         for n in possibleNodes[0].children:
