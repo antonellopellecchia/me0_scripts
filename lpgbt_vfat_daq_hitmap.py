@@ -18,7 +18,7 @@ def lpgbt_vfat_hitmap(system, oh_select, vfat_list, noise, cal_dac, nl1a, l1a_bx
     if not noise:
         filename = foldername + "vfat_hitmap_caldac%d_"%cal_dac + now + ".txt"
     else:
-        filename = foldername + "vfat_noisemap_caldac%d_"%cal_dac + now + ".txt"
+        filename = foldername + "vfat_noisemap_" + now + ".txt"
     file_out = open(filename,"w+")
     file_out.write("vfat    channel    fired    events\n")
 
