@@ -64,6 +64,7 @@ def lpgbt_vfat_reg_scan(system, dac, oh_select, vfat_list, channel_list, lower, 
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
     daq_monitor_reset_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET")
     daq_monitor_enable_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE")
+    daq_monitor_select_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT")
 
     dac_node = {}
     daq_monitor_event_count_node = {}
@@ -89,7 +90,7 @@ def lpgbt_vfat_reg_scan(system, dac, oh_select, vfat_list, channel_list, lower, 
         print ("Channel: %d"%channel)
         for vfat in vfat_list:
             enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
-        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT"), channel)
+        write_backend_reg(daq_monitor_select_node, channel)
         
         # Looping over charge
         for reg in range(lower,upper+1,step):
