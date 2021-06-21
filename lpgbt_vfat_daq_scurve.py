@@ -126,8 +126,8 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, step, nl1a, l1
 
             # Looping over VFATs
             for vfat in vfat_list:
-                daq_data[vfat][channel][reg]["events"] = read_backend_reg(daq_monitor_event_count_node[vfat])
-                daq_data[vfat][channel][reg]["fired"] = read_backend_reg(daq_monitor_fire_count_node[vfat])
+                daq_data[vfat][channel][charge]["events"] = read_backend_reg(daq_monitor_event_count_node[vfat])
+                daq_data[vfat][channel][charge]["fired"] = read_backend_reg(daq_monitor_fire_count_node[vfat])
             # End of VFAT loop
         # End of charge loop
         
