@@ -245,7 +245,7 @@ def makeTree(node,baseName,baseAddress,nodes,parentNode,vars,isGenerated,num_of_
     newNode.isModule = node.get('fw_is_module') is not None and node.get('fw_is_module') == 'true'
     if node.get('mode') is not None:
         newNode.mode = node.get('mode')
-    nodes.append(newNode)
+    nodes[newNode.name] = newNode
     if parentNode is not None:
         parentNode.addChild(newNode)
         newNode.parent = parentNode
