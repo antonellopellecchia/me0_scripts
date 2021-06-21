@@ -80,7 +80,7 @@ def lpgbt_vfat_reg_scan(system, reg, oh_select, vfat_list, channel_list, lower, 
         
         # Looping over charge
         for reg in range(lower,upper+1,step):
-            print ("    %s: %d"%(dac,reg))
+            #print ("    %s: %d"%(dac,reg))
        	    for vfat in vfat_list:
                 write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.%s"%(oh_select, vfat, dac)), reg)
            

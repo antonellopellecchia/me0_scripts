@@ -89,7 +89,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, step, nl1a, l1
                 charge = 255 - c
             else:
                 charge = c
-            print ("    Injected Charge: %d"%charge)
+            #print ("    Injected Charge: %d"%charge)
        	    for vfat in vfat_list:
                 write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.CFG_CAL_DAC"%(oh_select, vfat)), c)
            
