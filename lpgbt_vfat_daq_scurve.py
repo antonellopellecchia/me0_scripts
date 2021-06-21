@@ -115,7 +115,24 @@ def lpgbt_vfat_scurve(system, vfat_list, channel_list, step, nl1a, l1a_bxgap):
     # Setup the DAQ monitor
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_GLOBAL_OR"), 0)
+    daq_monitor_reset_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET")
+    daq_monitor_enable_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE")
+    daq_monitor_select_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT")
 
+    dac_node = {}
+    daq_monitor_event_count_node = {}
+    daq_monitor_fire_count_node = {}
+    dac = "CFG_CAL_DAC"
+    for vfat in vfat_list:
+        lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
+        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
+        dac_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.%s"%(oh_select, vfat-6*oh_select, dac))
+        daq_monitor_event_count_node[vfat] = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.GOOD_EVENTS_COUNT"%(vfat-6*oh_select))
+        daq_monitor_fire_count_node[vfat] = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.CHANNEL_FIRE_COUNT"%(vfat-6*oh_select))
+
+    ttc_enable_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE")
+    ttc_reset_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET")
+    ttc_cyclic_start_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START")
     cyclic_running_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_RUNNING")
     l1a_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.L1A")
     calpulse_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.CALPULSE")
@@ -129,9 +146,8 @@ def lpgbt_vfat_scurve(system, vfat_list, channel_list, step, nl1a, l1a_bxgap):
         print ("Channel: %d"%channel)
         for vfat in vfat_list:
             lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
-        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT"), channel)
+        write_backend_reg(daq_monitor_select_node, channel)
         
         # Looping over charge
         for c in range(0,256,step):
@@ -139,33 +155,31 @@ def lpgbt_vfat_scurve(system, vfat_list, channel_list, step, nl1a, l1a_bxgap):
                 charge = 255 - c
             else:
                 charge = c
-            print ("    Injected Charge: %d"%charge)
+            #print ("    Injected Charge: %d"%charge)
        	    for vfat in vfat_list:
-                lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-                write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.CFG_CAL_DAC"%(oh_select, vfat-6*oh_select)), c)
+                write_backend_reg(dac_node[vfat], c)
            
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET"), 1)
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
+            write_backend_reg(daq_monitor_reset_node, 1)
+            write_backend_reg(daq_monitor_enable_node, 1)
 
 		    # Start the cyclic generator
             l1a_counter_initial = read_backend_reg(l1a_node)
             calpulse_counter_initial = read_backend_reg(calpulse_node)
-            write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
-            write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START"), 1)
+            write_backend_reg(ttc_enable_node, 1)
+            write_backend_reg(ttc_cyclic_start_node, 1)
             cyclic_running = 1
             while (cyclic_running):
                 cyclic_running = read_backend_reg(cyclic_running_node)
             # Stop the cyclic generator
-            write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET"), 1)
+            write_backend_reg(ttc_reset_node, 1)
             l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
             calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 0)
+            write_backend_reg(daq_monitor_enable_node, 0)
 
             # Looping over VFATs
             for vfat in vfat_list:
-                lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-                daq_data[vfat][channel][charge]["events"] = read_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.GOOD_EVENTS_COUNT"%(vfat-6*oh_select)))
-                daq_data[vfat][channel][charge]["fired"] = read_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.CHANNEL_FIRE_COUNT"%(vfat-6*oh_select)))
+                daq_data[vfat][channel][charge]["events"] = read_backend_reg(daq_monitor_event_count_node[vfat])
+                daq_data[vfat][channel][charge]["fired"] = read_backend_reg(daq_monitor_fire_count_node[vfat])
             # End of VFAT loop
         # End of charge loop
         

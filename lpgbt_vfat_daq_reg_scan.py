@@ -79,12 +79,12 @@ def lpgbt_vfat_reg_scan(system, dac, vfat_list, channel_list, lower, upper, step
         check_lpgbt_link_ready(oh_select, gbt_select)
 
         print("Configuring VFAT %d" % (vfat))
-        configureVfat(1, vfat, oh_select, 0)
+        configureVfat(1, vfat-6*oh_select, oh_select, 0)
         for channel in channel_list:
-            enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask all channels and disable calpulsing
+            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask all channels and disable calpulsing
 
-        link_good_node = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.LINK_GOOD" % (oh_select, vfat))
-        sync_error_node = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.SYNC_ERR_CNT" % (oh_select, vfat))
+        link_good_node = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.LINK_GOOD" % (oh_select, vfat-6*oh_select))
+        sync_error_node = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.SYNC_ERR_CNT" % (oh_select, vfat-6*oh_select))
         link_good = read_backend_reg(link_good_node)
         sync_err = read_backend_reg(sync_error_node)
         if system!="dryrun" and (link_good == 0 or sync_err > 0):
@@ -110,7 +110,23 @@ def lpgbt_vfat_reg_scan(system, dac, vfat_list, channel_list, lower, upper, step
     # Setup the DAQ monitor
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_GLOBAL_OR"), 0)
+    daq_monitor_reset_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET")
+    daq_monitor_enable_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE")
+    daq_monitor_select_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT")
 
+    dac_node = {}
+    daq_monitor_event_count_node = {}
+    daq_monitor_fire_count_node = {}
+    for vfat in vfat_list:
+        lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
+        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
+        dac_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.%s"%(oh_select, vfat-6*oh_select, dac))
+        daq_monitor_event_count_node[vfat] = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.GOOD_EVENTS_COUNT"%(vfat-6*oh_select))
+        daq_monitor_fire_count_node[vfat] = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.CHANNEL_FIRE_COUNT"%(vfat-6*oh_select))
+
+    ttc_enable_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE")
+    ttc_reset_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET")
+    ttc_cyclic_start_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START")
     cyclic_running_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_RUNNING")
     l1a_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.L1A")
     calpulse_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.CALPULSE")
@@ -124,45 +140,42 @@ def lpgbt_vfat_reg_scan(system, dac, vfat_list, channel_list, lower, upper, step
         print ("Channel: %d"%channel)
         for vfat in vfat_list:
             lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
-            enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
-        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT"), channel)
+            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+        write_backend_reg(daq_monitor_select_node, channel)
         
         # Looping over charge
         for reg in range(lower,upper+1,step):
-            print ("    %s: %d"%(dac,reg))
+            #print ("    %s: %d"%(dac,reg))
        	    for vfat in vfat_list:
-       	        lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-                write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.%s"%(oh_select, vfat, dac)), reg)
+       	        write_backend_reg(dac_node[vfat], reg)
            
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET"), 1)
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
+            write_backend_reg(daq_monitor_reset_node, 1)
+            write_backend_reg(daq_monitor_enable_node, 1)
 
 		    # Start the cyclic generator
             l1a_counter_initial = read_backend_reg(l1a_node)
             calpulse_counter_initial = read_backend_reg(calpulse_node)
-            write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
-            write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START"), 1)
+            write_backend_reg(ttc_enable_node, 1)
+            write_backend_reg(ttc_cyclic_start_node, 1)
             cyclic_running = 1
             while (cyclic_running):
                 cyclic_running = read_backend_reg(cyclic_running_node)
             # Stop the cyclic generator
-            write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET"), 1)
+            write_backend_reg(ttc_reset_node, 1)
             l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
             calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
-            write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 0)
+            write_backend_reg(daq_monitor_enable_node, 0)
 
             # Looping over VFATs
             for vfat in vfat_list:
-                lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-                daq_data[vfat][channel][reg]["events"] = read_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.GOOD_EVENTS_COUNT"%(vfat)))
-                daq_data[vfat][channel][reg]["fired"] = read_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.CHANNEL_FIRE_COUNT"%(vfat)))
+                daq_data[vfat][channel][reg]["events"] = read_backend_reg(daq_monitor_event_count_node[vfat])
+                daq_data[vfat][channel][reg]["fired"] = read_backend_reg(daq_monitor_fire_count_node[vfat])
             # End of VFAT loop
         # End of charge loop
         
         for vfat in vfat_list:
             lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-            enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask channel and disable calpulsing
+            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask channel and disable calpulsing
     # End of channel loop
     print ("")
 
@@ -172,8 +185,8 @@ def lpgbt_vfat_reg_scan(system, dac, vfat_list, channel_list, lower, upper, step
         enable_channel = 0
         print("Unconfiguring VFAT %d" % (vfat))
         for channel in channel_list:
-            enableVfatchannel(vfat, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
-        configureVfat(0, vfat, oh_select, 0)
+            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
+        configureVfat(0, vfat-6*oh_select, oh_select, 0)
 
     # Writing Results
     for vfat in vfat_list:
