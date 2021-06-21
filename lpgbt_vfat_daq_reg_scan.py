@@ -7,7 +7,7 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_reg_scan(system, reg, oh_select, vfat_list, channel_list, lower, upper, step, nl1a, l1a_bxgap):
+def lpgbt_vfat_reg_scan(system, dac, oh_select, vfat_list, channel_list, lower, upper, step, nl1a, l1a_bxgap):
     print ("Performing Register Scan for: %s\n"%dac)
     if not os.path.exists("daq_reg_scan_results"):
         os.makedirs("daq_reg_scan_results")
