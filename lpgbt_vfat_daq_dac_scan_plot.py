@@ -8,14 +8,14 @@ import argparse
 if __name__ == '__main__':
 
     # Parsing arguments
-    parser = argparse.ArgumentParser(description='Plotting VFAT DAQ DAC Scan')
-    parser.add_argument("-f", "--filename", action="store", dest="filename", help="DAC Scan result filename")
+    parser = argparse.ArgumentParser(description='Plotting VFAT DAQ Register Scan')
+    parser.add_argument("-f", "--filename", action="store", dest="filename", help="Register Scan result filename")
     parser.add_argument("-c", "--channels", action="store", nargs="+", dest="channels", help="Channels to plot for each VFAT")
-    parser.add_argument("-d", "--dac", action="store", dest="dac", help="DAC to plot")
+    parser.add_argument("-d", "--dac", action="store", dest="dac", help="Register to plot")
     args = parser.parse_args()
 
     if args.dac is None:
-        print(Colors.YELLOW + "Need DAC to plot" + Colors.ENDC)
+        print(Colors.YELLOW + "Need Register to plot" + Colors.ENDC)
         sys.exit()
     dac = args.dac
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
         for channel in args.channels:
             channel = int(channel)
             if channel not in dac_result[vfat]:
-                print (Colors.YELLOW + "Channel %d not in SCurve scan"%channel + Colors.ENDC)
+                print (Colors.YELLOW + "Channel %d not in Register scan"%channel + Colors.ENDC)
                 continue
             reg = range(0,256)
             reg_plot = []

@@ -7,17 +7,17 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_dac_scan(system, dac, oh_select, vfat_list, channel_list, lower, upper, step, nl1a, l1a_bxgap):
-    print ("Performing DAC Scan for: %s\n"%dac)
-    if not os.path.exists("daq_dac_scan_results"):
-        os.makedirs("daq_dac_scan_results")
+def lpgbt_vfat_reg_scan(system, reg, oh_select, vfat_list, channel_list, lower, upper, step, nl1a, l1a_bxgap):
+    print ("Performing Register Scan for: %s\n"%dac)
+    if not os.path.exists("daq_reg_scan_results"):
+        os.makedirs("daq_reg_scan_results")
     now = str(datetime.datetime.now())[:16]
     now = now.replace(":", "_")
     now = now.replace(" ", "_")
-    foldername = "daq_dac_scan_results/"
-    filename = foldername + "vfat_dac_scan_" + dac + "_" + now + ".txt"
+    foldername = "daq_reg_scan_results/"
+    filename = foldername + "vfat_reg_scan_" + dac + "_" + now + ".txt"
     file_out = open(filename,"w+")
-    file_out.write("vfat    channel    dac    fired    events\n")
+    file_out.write("vfat    channel    register    fired    events\n")
 
     vfat_oh_link_reset()
     global_reset()
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0-7 (only needed for backend)")
     parser.add_argument("-v", "--vfats", action="store", nargs='+', dest="vfats", help="vfats = list of VFAT numbers (0-23)")
     parser.add_argument("-c", "--channels", action="store", nargs='+', dest="channels", help="channels = list of channels (default: 0-127)")
-    parser.add_argument("-d", "--dacs", action="store", nargs='+', dest="dacs", help="DACs to scan")
+    parser.add_argument("-r", "--regs", action="store", nargs='+', dest="regs", help="Registers to scan")
     parser.add_argument("-ll", "--lower", action="store", dest="lower", default="0", help="lower = Lower limit for DAC scan (default=0)")
     parser.add_argument("-ul", "--upper", action="store", dest="upper", default="255", help="upper = Upper limit for DAC scan (default=255)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for DAC scan (default=1)")
@@ -168,8 +168,8 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "Only valid options: backend, dryrun" + Colors.ENDC)
         sys.exit()
 
-    if args.dacs is None:
-        print(Colors.YELLOW + "Need list of DACs to scan" + Colors.ENDC)
+    if args.regs is None:
+        print(Colors.YELLOW + "Need list of Registers to scan" + Colors.ENDC)
         sys.exit()
 
     if args.ohid is None:
@@ -259,8 +259,8 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        for dac in args.dacs:
-            lpgbt_vfat_dac_scan(args.system, dac, int(args.ohid), vfat_list, channel_list, lower, upper, step, nl1a, l1a_bxgap)
+        for reg in args.regs:
+            lpgbt_vfat_reg_scan(args.system, reg, int(args.ohid), vfat_list, channel_list, lower, upper, step, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
