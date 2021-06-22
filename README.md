@@ -159,11 +159,21 @@ Use -h option for any script to check usage
 
 ```lpgbt_vfat_config.py```: configure VFAT
 
+```lpgbt_vfat_daq_crosstalk.py```: Scan for checking cross talk using DAQ data for VFATs
+
+```lpgbt_vfat_daq_crosstalk_plot.py```: Plotting scan for checking cross talk using DAQ data for VFATs
+
+```lpgbt_vfat_daq_hitmap.py```: Hit/Noise map using DAQ data for VFATs
+
+```lpgbt_vfat_daq_hitmap_plot.py```: Plotting Hit/Noise map using DAQ data for VFATs
+
 ```lpgbt_vfat_daq_reg_scan.py```: Scan register values using DAQ data for VFATs
 
 ```lpgbt_vfat_daq_reg_scan_plot.py```: Register Scan Plotting using DAQ data for VFATs
 
 ```lpgbt_vfat_daq_scurve.py```: SCurve using DAQ data for VFATs
+
+```lpgbt_vfat_daq_scurve_analysis.py```: SCurve Analysis (fitting) using DAQ data for VFATs
 
 ```lpgbt_vfat_daq_scurve_plot.py```: SCurve Plotting using DAQ data for VFATs
 
