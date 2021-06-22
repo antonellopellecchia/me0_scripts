@@ -96,10 +96,6 @@ def lpgbt_vfat_crosstalk(system, oh_select, vfat_list, cal_dac, nl1a, l1a_bxgap)
 
         # Looping over channels to be read
         for channel_read in channel_list:
-            if channel_read == channel_inj:
-                daq_data[vfat][channel_inj][channel_read]["events"] = -9999
-                daq_data[vfat][channel_inj][channel_read]["fired"] = -9999
-                continue
             write_backend_reg(daq_monitor_select_node, channel_read)
             write_backend_reg(daq_monitor_reset_node, 1)
             write_backend_reg(daq_monitor_enable_node, 1)

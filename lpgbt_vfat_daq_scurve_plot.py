@@ -1,3 +1,4 @@
+from rw_reg_lpgbt import *
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
@@ -11,6 +12,10 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--filename", action="store", dest="filename", help="SCurve result filename")
     parser.add_argument("-c", "--channels", action="store", nargs="+", dest="channels", help="Channels to plot for each VFAT")
     args = parser.parse_args()
+
+    if args.channels is None:
+        print(Colors.YELLOW + "Enter channel list to plot SCurves" + Colors.ENDC)
+        sys.exit()
 
     plot_filename_prefix = args.filename.split(".txt")[0]
     file = open(args.filename)
@@ -34,6 +39,29 @@ if __name__ == '__main__':
     file.close()
 
     for vfat in scurve_result:
+        fig, axs = plt.subplots()
+        plt.xlabel('Channel')
+        plt.ylabel('Charge')
+        plt.xlim(0,128)
+        plt.ylim(0,256)
+
+        plot_data = []
+        for charge in range(0,256):
+            data = []
+            for channel in range(0,128):
+                if channel not in scurve_result[vfat]:
+                    data.append(0)
+                elif charge not in scurve_result[vfat][channel]:
+                    data.append(0)
+                else:
+                    data.append(scurve_result[vfat][channel][charge])
+            plot_data.append(data)
+        plot = axs.imshow(plot_data, cmap='plasma',interpolation="nearest", aspect="auto")
+        fig.colorbar(plot, ax=axs)
+        plt.title("VFAT# %02d"%vfat)
+        plt.savefig((plot_filename_prefix+"_map_VFAT%02d.pdf")%vfat)
+
+    for vfat in scurve_result:
         fig, ax = plt.subplots()
         plt.xlabel('Charge')
         plt.ylabel('# Fired Events / # Total Events')
@@ -54,6 +82,11 @@ if __name__ == '__main__':
         leg = ax.legend(loc='center right', ncol=2)
         plt.title("VFAT# %02d"%vfat)
         plt.savefig((plot_filename_prefix+"_VFAT%02d.pdf")%vfat)
+
+
+
+
+
 
 
 
