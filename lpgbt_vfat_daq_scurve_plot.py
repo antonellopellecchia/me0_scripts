@@ -1,6 +1,7 @@
 from rw_reg_lpgbt import *
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from matplotlib import cm
 import numpy as np
 import os, sys, glob
 import argparse
@@ -40,10 +41,10 @@ if __name__ == '__main__':
 
     for vfat in scurve_result:
         fig, axs = plt.subplots()
-        plt.xlabel('Channel')
-        plt.ylabel('Charge')
-        plt.xlim(0,128)
-        plt.ylim(0,256)
+        plt.xlabel('Channel Number')
+        plt.ylabel('Injected Charge (DAC)')
+        #plt.xlim(0,128)
+        #plt.ylim(0,256)
 
         plot_data = []
         for charge in range(0,256):
@@ -56,8 +57,11 @@ if __name__ == '__main__':
                 else:
                     data.append(scurve_result[vfat][channel][charge])
             plot_data.append(data)
-        plot = axs.imshow(plot_data, cmap='plasma',interpolation="nearest", aspect="auto")
-        fig.colorbar(plot, ax=axs)
+        channelNum = np.arange(0, 128, 1)
+        chargeVals = np.arange(0, 256, 1)
+        plot = axs.imshow(plot_data, extent=[min(channelNum), max(channelNum), min(chargeVals), max(chargeVals)], origin="lower",  cmap=cm.ocean_r,interpolation="nearest", aspect="auto")
+        cbar = fig.colorbar(plot, ax=axs, pad=0.01)
+        cbar.set_label('Fired Events / Total Events')
         plt.title("VFAT# %02d"%vfat)
         plt.savefig((plot_filename_prefix+"_map_VFAT%02d.pdf")%vfat)
 

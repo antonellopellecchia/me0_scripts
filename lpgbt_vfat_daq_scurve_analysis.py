@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from matplotlib import cm
 import numpy as np
 import os, sys, glob
 import argparse
@@ -114,7 +115,9 @@ def fit_scurve(vfatList, scurve_result, plot_filename_prefix, directoryName, ver
     return scurveParams
 
 def plotENCdistributions(vfatList, scurveParams, plot_filename_prefix, directoryName):
-    
+    '''
+    Plots the ENC distribution of all channels for each VFAT.
+    '''
     fig, ax = plt.subplots(figsize = (12,10))
     ax.set_xlabel('VFAT Number')
     ax.set_ylabel('S-curve ENC (fC)')
@@ -130,7 +133,42 @@ def plotENCdistributions(vfatList, scurveParams, plot_filename_prefix, directory
     plt.grid()
     fig.tight_layout()
     plt.savefig(directoryName + '/' + plot_filename_prefix + '_scurveENCdistribution.pdf')
-    print("\nENC distribution plot save at %s" % directoryName + '/' + plot_filename_prefix + '_scurveENCdistribution.pdf')
+    print("\nENC distribution plot saved at %s" % directoryName + '/' + plot_filename_prefix + '_scurveENCdistribution.pdf')
+
+def plot2Dhist(vfatList, directoryName, scurve_result):
+    '''
+    Formats data originally stored in the s-curve dictionary
+    and plots the 2D s-curve histogram.
+    '''
+    hist2Ddata  = np.ndarray((len(vfatList), 256, 128))
+    vfatCounter = 0
+    
+    for vfat in vfatList:
+        for channel in range(128):
+            temp       = dictToArray(scurve_result, vfat, channel) # transfer data from dictionary to array
+            hist2Ddata[vfatCounter, :, channel] =  temp[:,1]    
+        vfatCounter += 1
+
+    channelNum = np.arange(0, 128, 1)
+    chargeVals = np.arange(0, 256, 1)
+    vfatCounter = 0
+    for vfat in vfatList:
+        fig, ax = plt.subplots(figsize = (10,10))
+        hist = ax.imshow(hist2Ddata[vfatCounter,:,:],
+                   extent=[min(channelNum), max(channelNum), min(chargeVals), max(chargeVals)],cmap = cm.ocean_r,
+                   origin="lower", interpolation='none', aspect="auto")
+        cbar = fig.colorbar(hist, ax=ax, pad=0.01)
+        cbar.set_label('Fired Events / Total Events')
+        ax.set_xlabel('Channel Number')
+        ax.set_ylabel('Injected Charge (DAC)')
+        ax.set_title('S-curves for VFAT%d' % vfat)
+        fig.tight_layout()
+        plt.xticks(np.arange(min(channelNum), max(channelNum)+1, 20))
+        fig.savefig(directoryName + '/scurve2Dhist_VFAT%d.pdf' % vfat, dpi=1000)
+        print(("\n2D histogram of scurves for VFAT%d " % vfat )+ ("saved at %s" % directoryName) + "/scurve2Dhist_VFAT%d.pdf" % vfat)
+        
+        vfatCounter += 1
+
 
 if __name__ == '__main__':
     warnings.filterwarnings("ignore") # temporarily disable warnings; infinite covariance matrix is returned when calling scipy.optimize.curve_fit(), but fit is fine
@@ -180,5 +218,6 @@ if __name__ == '__main__':
     scurveParams = fit_scurve(vfatList, scurve_result, plot_filename_prefix, directoryName, args.verbose, args.plotAll)
 
     plotENCdistributions(vfatList, scurveParams, plot_filename_prefix, directoryName)
+    plot2Dhist(vfatList, directoryName, scurve_result)
 
-    
+

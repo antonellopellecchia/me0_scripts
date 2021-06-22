@@ -175,7 +175,7 @@ Use -h option for any script to check usage
 
 ```lpgbt_vfat_daq_scurve_analysis.py```: SCurve Analysis (fitting) using DAQ data for VFATs
 
-```lpgbt_vfat_daq_scurve_plot.py```: SCurve Plotting using DAQ data for VFATs
+```lpgbt_vfat_daq_scurve_plot.py```: SCurve quick Plotting using DAQ data for VFATs
 
 ```lpgbt_vfat_daq_test.py```: bit error ratio tests by reading DAQ data packets from VFATs
 
