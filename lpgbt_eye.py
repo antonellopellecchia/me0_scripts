@@ -11,11 +11,11 @@ def main(system, count, boss):
     writeReg(getNode("LPGBT.RW.EOM.EOMENABLE"), 1, 0)
 
     # Equalizer settings
-    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQCAP"), 0x1, 0)
-    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES0"), 0x1, 0)
-    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES1"), 0x1, 0)
-    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES2"), 0x1, 0)
-    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES3"), 0x1, 0)
+    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQCAP"), 0x0, 0)
+    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES0"), 0x0, 0)
+    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES1"), 0x0, 0)
+    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES2"), 0x0, 0)
+    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES3"), 0x0, 0)
 
     eyeimage = [[0 for y in range(31)] for x in range(64)]
 
