@@ -142,6 +142,7 @@ def lpgbt_vfat_bert(system, oh_select, vfat_list, reg_list, niter, runtime, verb
             n+=1
             continue_iteration = (n<niter) or ((time()-t00)<(runtime*60.0))
 
+        print ("")
         if niter==0:
             niter = n
         time_taken = (time() - t00)/60.00 # in minutes
