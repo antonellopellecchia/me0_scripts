@@ -4,18 +4,23 @@ import sys
 import os
 import argparse
 
-def main(system, count, boss):
+def main(system, cap, r0, r1, r2, r3, count, boss):
 
     cntsel = count
     writeReg(getNode("LPGBT.RW.EOM.EOMENDOFCOUNTSEL"), cntsel, 0)
     writeReg(getNode("LPGBT.RW.EOM.EOMENABLE"), 1, 0)
 
     # Equalizer settings
-    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQCAP"), 0x0, 0)
-    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES0"), 0x0, 0)
-    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES1"), 0x0, 0)
-    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES2"), 0x0, 0)
-    #writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES3"), 0x0, 0)
+    if cap is not None:
+        writeReg(getNode("LPGBT.RWF.EQUALIZER.EQCAP"), cap, 0)
+    if r0 is not None:
+        writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES0"), r0, 0)
+    if r1 is not None:
+        writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES1"), r1, 0)
+    if r2 is not None:
+        writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES2"), r2, 0)
+    if r3 is not None:
+        writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES3"), r3, 0)
 
     eyeimage = [[0 for y in range(31)] for x in range(64)]
 
@@ -120,7 +125,12 @@ if __name__ == '__main__':
     parser.add_argument("-l", "--lpgbt", action="store", dest="lpgbt", help="lpgbt = only boss allowed")
     parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-1 (only needed for backend)")
     parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0-7 (only needed for backend)")
-    parser.add_argument("-c", "--count", action="store", dest="count", default="0x7", help="EOMendOfCountSel[3:0] in hex")
+    parser.add_argument("-c", "--cap", action="store", dest="cap", help="EQCAP in hex (0x00 - 0x03)")
+    parser.add_argument("-r0", "--res0", action="store", dest="res0", help="EQRES0 in hex (0x00 - 0x03)")
+    parser.add_argument("-r1", "--res1", action="store", dest="res1", help="EQRES1 in hex (0x00 - 0x03)")
+    parser.add_argument("-r2", "--res2", action="store", dest="res2", help="EQRES2 in hex (0x00 - 0x03)")
+    parser.add_argument("-r3", "--res3", action="store", dest="res3", help="EQRES3 in hex (0x00 - 0x03)")
+    parser.add_argument("-n", "--count", action="store", dest="count", default="0x7", help="EOMendOfCountSel[3:0] in hex")
     args = parser.parse_args()
 
     if args.system == "chc":
@@ -175,6 +185,32 @@ if __name__ == '__main__':
             print (Colors.YELLOW + "OHID and GBTID only needed for backend" + Colors.ENDC)
             sys.exit()
 
+    if args.cap is not None:
+        cap = int(args.cap0,16)
+        if cap>3:
+            print (Colors.YELLOW + "EQCAP can be max 2 bits" + Colors.ENDC)
+            sys.exit()
+    if args.r0 is not None:
+        r0 = int(args.r0,16)
+        if r0>3:
+            print (Colors.YELLOW + "EQRES0 can be max 2 bits" + Colors.ENDC)
+            sys.exit()
+    if args.r1 is not None:
+        r1 = int(args.r1,16)
+        if r1>3:
+            print (Colors.YELLOW + "EQRES1 can be max 2 bits" + Colors.ENDC)
+            sys.exit()
+    if args.r2 is not None:
+        r2 = int(args.r2,16)
+        if r2>3:
+            print (Colors.YELLOW + "EQRES2 can be max 2 bits" + Colors.ENDC)
+            sys.exit()
+    if args.r3 is not None:
+        r3 = int(args.r3,16)
+        if r3>3:
+            print (Colors.YELLOW + "EQRES3 can be max 2 bits" + Colors.ENDC)
+            sys.exit()
+
     if int(args.count,16) > 15:
         print (Colors.YELLOW + "EOMendOfCountSel[3:0] can be max 4 bits" + Colors.ENDC)
         sys.exit()
@@ -200,7 +236,7 @@ if __name__ == '__main__':
             check_lpgbt_ready()
     
     try:
-        main(args.system, int(args.count,16), boss)
+        main(args.system, cap, r0, r1, r2, r3, int(args.count,16), boss)
     except KeyboardInterrupt:
         print (Colors.RED + "\nKeyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
