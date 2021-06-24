@@ -107,9 +107,9 @@ def lpgbt_phase_scan(system, oh_select, daq_err, vfat_list, depth, best_phase):
             # Check DAQ event counter and CRC errors with L1A if link and slow control good
             if daq_err:
                 if system == "dryrun" or (link_good[vfat][phase]==1 and sync_err_cnt[vfat][phase]==0 and cfg_run[vfat][phase]==0):
-                    # configureVfat(1, vfat, oh_select, 1) # configure VFAT with low threshold
-                    write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_THR_ARM_DAC"%(oh_select,vfat)), 0) # low threshold for random data
-                    write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_RUN"%(oh_select,vfat)), 1)
+                    configureVfat(1, vfat, oh_select, 1) # configure VFAT with low threshold
+                    #write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_THR_ARM_DAC"%(oh_select,vfat)), 0) # low threshold for random data
+                    #write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_RUN"%(oh_select,vfat)), 1)
                     for i in range(128):
                         enableVfatchannel(vfat, oh_select, i, 0, 0) # unmask all channels and disable calpulsing
 
@@ -127,7 +127,8 @@ def lpgbt_phase_scan(system, oh_select, daq_err, vfat_list, depth, best_phase):
                             daq_crc_error[vfat][phase] = read_backend_reg(get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.DAQ_CRC_ERROR_CNT" % (oh_select, vfat)))
                         else:
                             print (Colors.YELLOW + "\tProblem with DAQ event counter=%d"%(daq_event_counter) + Colors.ENDC)
-                    write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_RUN"%(oh_select,vfat)), 0)
+                    configureVfat(0, vfat, oh_select, 0) # unconfigure VFAT
+                    #write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_RUN"%(oh_select,vfat)), 0)
             else:
                 daq_crc_error[vfat][phase]=0
 
