@@ -45,9 +45,11 @@ def lpgbt_vfat_bert(system, oh_select, vfat_list, nl1a, runtime, l1a_bxgap, calp
 
         print("Configuring VFAT %d" % (vfat))
         file_out.write("Configuring VFAT %d\n" % (vfat))
-        configureVfat(1, vfat, oh_select, 0)
         if calpulse:
+            configureVfat(1, vfat, oh_select, 0)
             enableVfatchannel(vfat, oh_select, 0, 0, 1) # enable calpulsing on channel 0 for this VFAT
+        else:
+            configureVfat(1, vfat, oh_select, 1) # configure with 0 threshold to get noise
 
         link_good_node[vfat] = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.LINK_GOOD" % (oh_select, vfat))
         sync_error_node[vfat] = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.SYNC_ERR_CNT" % (oh_select, vfat))
