@@ -159,6 +159,8 @@ Use -h option for any script to check usage
 
 ```lpgbt_vfat_config.py```: configure VFAT
 
+```lpgbt_vfat_dac_scan.py```: VFAT DAC Scan
+
 ```lpgbt_vfat_daq_crosstalk.py```: Scan for checking cross talk using DAQ data for VFATs
 
 ```lpgbt_vfat_daq_crosstalk_plot.py```: Plotting scan for checking cross talk using DAQ data for VFATs

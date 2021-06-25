@@ -186,31 +186,49 @@ if __name__ == '__main__':
             sys.exit()
 
     if args.cap is not None:
+        if "0x" not in args.cap:
+            print (Colors.YELLOW + "Enter EQCAP in hex" + Colors.ENDC)
+            sys.exit()
         cap = int(args.cap0,16)
         if cap>3:
             print (Colors.YELLOW + "EQCAP can be max 2 bits" + Colors.ENDC)
             sys.exit()
     if args.r0 is not None:
+        if "0x" not in args.r0:
+            print (Colors.YELLOW + "Enter EQRES0 in hex" + Colors.ENDC)
+            sys.exit()
         r0 = int(args.r0,16)
         if r0>3:
             print (Colors.YELLOW + "EQRES0 can be max 2 bits" + Colors.ENDC)
             sys.exit()
     if args.r1 is not None:
+        if "0x" not in args.r1:
+            print (Colors.YELLOW + "Enter EQRES1 in hex" + Colors.ENDC)
+            sys.exit()
         r1 = int(args.r1,16)
         if r1>3:
             print (Colors.YELLOW + "EQRES1 can be max 2 bits" + Colors.ENDC)
             sys.exit()
     if args.r2 is not None:
+        if "0x" not in args.r2:
+            print (Colors.YELLOW + "Enter EQRES2 in hex" + Colors.ENDC)
+            sys.exit()
         r2 = int(args.r2,16)
         if r2>3:
             print (Colors.YELLOW + "EQRES2 can be max 2 bits" + Colors.ENDC)
             sys.exit()
     if args.r3 is not None:
+        if "0x" not in args.r3:
+            print (Colors.YELLOW + "Enter EQRES3 in hex" + Colors.ENDC)
+            sys.exit()
         r3 = int(args.r3,16)
         if r3>3:
             print (Colors.YELLOW + "EQRES3 can be max 2 bits" + Colors.ENDC)
             sys.exit()
 
+    if "0x" not in args.count:
+        print (Colors.YELLOW + "Enter EOMendOfCountSel[3:0] in hex" + Colors.ENDC)
+        sys.exit()
     if int(args.count,16) > 15:
         print (Colors.YELLOW + "EOMendOfCountSel[3:0] can be max 4 bits" + Colors.ENDC)
         sys.exit()
