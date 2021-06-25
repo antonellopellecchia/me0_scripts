@@ -189,7 +189,7 @@ if __name__ == '__main__':
         if "0x" not in args.cap:
             print (Colors.YELLOW + "Enter EQCAP in hex" + Colors.ENDC)
             sys.exit()
-        cap = int(args.cap0,16)
+        cap = int(args.cap,16)
         if cap>3:
             print (Colors.YELLOW + "EQCAP can be max 2 bits" + Colors.ENDC)
             sys.exit()
