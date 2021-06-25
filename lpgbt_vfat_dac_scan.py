@@ -34,7 +34,7 @@ REGISTER_DAC_MONITOR_MAP = {
     "SLVS Vref": 41 # ??
 }
 
-def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, step, niter, adc_ref):
+def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, step, niter, adc_ref, vref):
     file_out = open("vfat_dac_scan_output.txt", "w") # OH number, DAC register name, VFAT number, dac scan point, value
     print ("LPGBT VFAT DAC Scan for VFATs:")
     print (vfat_list)
@@ -79,7 +79,7 @@ def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, st
         adc1_cached_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.ADC1_CACHED" % (oh_select, vfat))
         adc1_update_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.ADC1_UPDATE" % (oh_select, vfat))
 
-        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_VREF_ADC" % (oh_select, vfat)) , 3)
+        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_VREF_ADC" % (oh_select, vfat)) , vref)
 
         dac_scan_results[vfat] = {}
         for dac in dac_list:
@@ -153,6 +153,7 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for DAC scan (default=1)")
     parser.add_argument("-n", "--niter", action="store", dest="niter", default="100", help="niter = Number of times to read ADC for averaging (default=100)")
     parser.add_argument("-f", "--ref", action="store", dest="ref", default = "internal", help="ref = ADC reference: internal or external (default=internal)")
+    parser.add_argument("-vr", "--vref", action="store", dest="vref", default = "3", help="vref = CFG_VREF_ADC (0-3) (default=3)")
     parser.add_argument("-a", "--addr", action="store", nargs='+', dest="addr", help="addr = list of VFATs to enable HDLC addressing")
     args = parser.parse_args()
 
@@ -218,7 +219,12 @@ if __name__ == '__main__':
         sys.exit()
 
     if args.ref not in ["internal", "external"]:
-        print (Colors.YELLOW + "ADC reference can only be internal or externa;" + Colors.ENDC)
+        print (Colors.YELLOW + "ADC reference can only be internal or external" + Colors.ENDC)
+        sys.exit()
+
+    vref = int(args.vref)
+    if vref>3:
+        print (Colors.YELLOW + "Allowed VREF: 0-3" + Colors.ENDC)
         sys.exit()
 
     # Parsing Registers XML File
@@ -244,7 +250,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_dac_scan(args.system, int(args.ohid), vfat_list, args.regs, lower, upper, step, int(args.niter), args.ref)
+        lpgbt_vfat_dac_scan(args.system, int(args.ohid), vfat_list, args.regs, lower, upper, step, int(args.niter), args.ref, vref)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
