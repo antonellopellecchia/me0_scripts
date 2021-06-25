@@ -195,7 +195,7 @@ if __name__ == '__main__':
         sys.exit()
     for reg in args.regs:
         if reg not in REGISTER_DAC_MONITOR_MAP:
-            print(Colors.YELLOW + "Register not supperted for DAC scan" + Colors.ENDC)
+            print(Colors.YELLOW + "Register %s not supported for DAC scan"%reg + Colors.ENDC)
             sys.exit()
 
     lower = int(args.lower)
