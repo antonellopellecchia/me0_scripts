@@ -34,7 +34,7 @@ REGISTER_DAC_MONITOR_MAP = {
     "SLVS Vref": 41 # ??
 }
 
-def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, step, adc_ref):
+def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, step, niter, adc_ref):
     file_out = open("vfat_dac_scan_output.txt", "w") # OH number, DAC register name, VFAT number, dac scan point, value
     print ("LPGBT VFAT DAC Scan for VFATs:")
     print (vfat_list)
@@ -54,7 +54,6 @@ def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, st
     adc1_cached_node = {}
     adc1_update_node = {}
     dac_scan_results = {}
-    niter = 100
 
     # Check ready and get nodes
     for vfat in vfat_list:
@@ -150,6 +149,7 @@ if __name__ == '__main__':
     parser.add_argument("-ll", "--lower", action="store", dest="lower", default="0", help="lower = Lower limit for DAC scan (default=0)")
     parser.add_argument("-ul", "--upper", action="store", dest="upper", default="255", help="upper = Upper limit for DAC scan (default=255)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for DAC scan (default=1)")
+    parser.add_argument("-n", "--niter", action="store", dest="niter", default="100", help="niter = Number of times to read ADC for averaging (default=100)")
     parser.add_argument("-f", "--ref", action="store", dest="ref", default = "internal", help="ref = ADC reference: internal or external (default=internal)")
     parser.add_argument("-a", "--addr", action="store", nargs='+', dest="addr", help="addr = list of VFATs to enable HDLC addressing")
     args = parser.parse_args()
@@ -242,7 +242,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_dac_scan(args.system, int(args.ohid), vfat_list, args.regs, lower, upper, step, args.ref)
+        lpgbt_vfat_dac_scan(args.system, int(args.ohid), vfat_list, args.regs, lower, upper, step, int(args.iter), args.ref)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
