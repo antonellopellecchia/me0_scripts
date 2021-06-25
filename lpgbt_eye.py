@@ -10,6 +10,13 @@ def main(system, cap, r0, r1, r2, r3, count, boss):
     writeReg(getNode("LPGBT.RW.EOM.EOMENDOFCOUNTSEL"), cntsel, 0)
     writeReg(getNode("LPGBT.RW.EOM.EOMENABLE"), 1, 0)
 
+    # Configured Equalizer settings
+    cap_config = readReg(getNode("LPGBT.RWF.EQUALIZER.EQCAP"))
+    r0_config = readReg(getNode("LPGBT.RWF.EQUALIZER.EQRES0"))
+    r1_config = readReg(getNode("LPGBT.RWF.EQUALIZER.EQRES1"))
+    r2_config = readReg(getNode("LPGBT.RWF.EQUALIZER.EQRES2"))
+    r3_config = readReg(getNode("LPGBT.RWF.EQUALIZER.EQRES3"))
+
     # Equalizer settings
     if cap is not None:
         writeReg(getNode("LPGBT.RWF.EQUALIZER.EQCAP"), cap, 0)
@@ -117,6 +124,13 @@ def main(system, cap, r0, r1, r2, r3, count, boss):
             f.write(",\n")
         else:
             f.write("]\n")
+
+    # Setting back Equalizer settings to configured values
+    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQCAP"), cap_config, 0)
+    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES0"), r0_config, 0)
+    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES1"), r1_config, 0)
+    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES2"), r2_config, 0)
+    writeReg(getNode("LPGBT.RWF.EQUALIZER.EQRES3"), r3_config, 0)
 
 if __name__ == '__main__':
     # Parsing arguments
