@@ -242,7 +242,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_dac_scan(args.system, int(args.ohid), vfat_list, args.regs, lower, upper, step, int(args.iter), args.ref)
+        lpgbt_vfat_dac_scan(args.system, int(args.ohid), vfat_list, args.regs, lower, upper, step, int(args.niter), args.ref)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
