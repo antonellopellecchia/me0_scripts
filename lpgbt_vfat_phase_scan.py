@@ -28,7 +28,7 @@ def lpgbt_communication_test(system, oh_select, vfat_list, depth):
         lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
            
         check_lpgbt_link_ready(oh_select, gbt_select)
-        cfg_node = get_rwreg_node('GEM_AMC.OH.OH%d.GEB.VFAT%d.CFG_RUN' % (oh_select, vfat))
+        cfg_node = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.CFG_RUN" % (oh_select, vfat))
         for iread in range(depth):
             vfat_cfg_run = read_backend_reg(cfg_node)
             cfg_run[vfat] += (vfat_cfg_run != 0 and vfat_cfg_run != 1)
