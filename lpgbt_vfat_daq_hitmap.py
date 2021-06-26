@@ -56,7 +56,7 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-def lpgbt_vfat_hitmap(system, vfat_list, noise, cal_dac, nl1a, l1a_bxgap):
+def lpgbt_vfat_hitmap(system, vfat_list, noise, low_thresh, cal_dac, nl1a, l1a_bxgap):
     if not os.path.exists("daq_hitmap_results"):
         os.makedirs("daq_hitmap_results")
     now = str(datetime.datetime.now())[:16]
@@ -84,7 +84,10 @@ def lpgbt_vfat_hitmap(system, vfat_list, noise, cal_dac, nl1a, l1a_bxgap):
         check_lpgbt_link_ready(oh_select, gbt_select)
 
         print("Configuring VFAT %d" % (vfat))
-        configureVfat(1, vfat-6*oh_select, oh_select, 0)
+        if args.noise and args.low_thresh:
+            configureVfat(1, vfat-6*oh_select, oh_select, 1)
+        else:
+            configureVfat(1, vfat-6*oh_select, oh_select, 0)
         for channel in channel_list:
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask all channels and disable calpulsing
         cal_mode[vfat] = read_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)))
@@ -208,6 +211,7 @@ if __name__ == '__main__':
     #parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-7 (only needed for backend)")
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
     parser.add_argument("-z", "--noise", action="store_true", dest="noise", help="if you want noise map instead of hit map")
+    parser.add_argument("-l", "--low_thresh", action="store_true", dest="low_thresh", help="if you want 0 thhreshold for VFATs to get noise")
     parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", help="cal_dac = Value of CAL_DAC register (default  = 50)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
@@ -252,6 +256,10 @@ if __name__ == '__main__':
             if oh_match != oh_select:
                 print (Colors.YELLOW + "Only VFATs belonging to the same OH allowed" + Colors.ENDC)
                 sys.exit()
+
+    if not args.noise and args.low_thresh:
+        print (Colors.YELLOW + "VFATs can be configured with 0 threshold only for noise map" + Colors.ENDC)
+        sys.exit()
 
     cal_dac = -9999
     if args.noise:
@@ -300,7 +308,7 @@ if __name__ == '__main__':
 
     # Running Phase Scan
     try:
-        lpgbt_vfat_hitmap(args.system, vfat_list, args.noise, cal_dac, nl1a, l1a_bxgap)
+        lpgbt_vfat_hitmap(args.system, vfat_list, args.noise, args.low_thresh, cal_dac, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()

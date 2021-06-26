@@ -67,8 +67,8 @@ if __name__ == '__main__':
 
     for vfat in scurve_result:
         fig, ax = plt.subplots()
-        plt.xlabel('Charge')
-        plt.ylabel('# Fired Events / # Total Events')
+        plt.xlabel('Injected Charge (DAC)')
+        plt.ylabel('Fired Events / Total Events')
         plt.ylim(-0.1,1.1)
         for channel in args.channels:
             channel = int(channel)
