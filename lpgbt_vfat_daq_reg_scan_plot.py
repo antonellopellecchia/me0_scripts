@@ -1,6 +1,7 @@
 from rw_reg_lpgbt import *
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from matplotlib import cm
 import numpy as np
 import os, sys, glob
 import argparse
@@ -27,7 +28,7 @@ if __name__ == '__main__':
             continue
         vfat = int(line.split()[0])
         channel = int(line.split()[1])
-        charge = int(line.split()[2])
+        reg = int(line.split()[2])
         fired = int(line.split()[3])
         events = int(line.split()[4])
         if vfat not in dac_result:
@@ -35,10 +36,36 @@ if __name__ == '__main__':
         if channel not in dac_result[vfat]:
             dac_result[vfat][channel] = {}
         if fired == -9999 or events == -9999 or events == 0:
-            dac_result[vfat][channel][charge] = 0
+            dac_result[vfat][channel][reg] = 0
         else:
-            dac_result[vfat][channel][charge] = float(fired)/float(events)
+            dac_result[vfat][channel][reg] = float(fired)/float(events)
     file.close()
+
+    for vfat in dac_result:
+        fig, axs = plt.subplots()
+        plt.xlabel('Channel Number')
+        plt.ylabel(dac + ' (DAC)')
+        #plt.xlim(0,128)
+        #plt.ylim(0,256)
+
+        plot_data = []
+        for reg in range(0,256):
+            data = []
+            for channel in range(0,128):
+                if channel not in dac_result[vfat]:
+                    data.append(0)
+                elif reg not in dac_result[vfat][channel]:
+                    data.append(0)
+                else:
+                    data.append(dac_result[vfat][channel][reg])
+            plot_data.append(data)
+        channelNum = np.arange(0, 128, 1)
+        dacVals = np.arange(0, 256, 1)
+        plot = axs.imshow(plot_data, extent=[min(channelNum), max(channelNum), min(dacVals), max(dacVals)], origin="lower",  cmap=cm.ocean_r,interpolation="nearest", aspect="auto")
+        cbar = fig.colorbar(plot, ax=axs, pad=0.01)
+        cbar.set_label('Fired Events / Total Events')
+        plt.title("VFAT# %02d"%vfat)
+        plt.savefig((plot_filename_prefix+"_map_VFAT%02d.pdf")%vfat)
 
     for vfat in dac_result:
         fig, ax = plt.subplots()
