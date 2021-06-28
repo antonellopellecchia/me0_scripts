@@ -223,7 +223,7 @@ if __name__ == '__main__':
     if args.nl1a is not None:
         nl1a = int(args.nl1a)
         if nl1a > (2**24 - 1):
-            print (Colors.YELLOW + "Number of L1A cycles can be maximum 1.68e7. Using time option for longer tests" + Colors.ENDC)
+            print (Colors.YELLOW + "Number of L1A cycles can be maximum 1.68e7" + Colors.ENDC)
             sys.exit()
     if nl1a==0:
         print (Colors.YELLOW + "Enter number of L1A cycles" + Colors.ENDC)

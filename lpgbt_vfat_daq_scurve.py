@@ -7,7 +7,7 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, step, nl1a, l1a_bxgap):
+def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap):
     if not os.path.exists("daq_scurve_results"):
         os.makedirs("daq_scurve_results")
     now = str(datetime.datetime.now())[:16]
@@ -31,6 +31,9 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, step, nl1a, l1
 
         print("Configuring VFAT %d" % (vfat))
         configureVfat(1, vfat, oh_select, 0)
+        if threshold != -9999:
+            print("Setting threshold = %d (DAC)"%threshold)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_THR_ARM_DAC"%(oh_select,vfat)), threshold)
         for channel in channel_list:
             enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask all channels and disable calpulsing
         cal_mode[vfat] = read_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)))
@@ -165,6 +168,7 @@ if __name__ == '__main__':
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0-7 (only needed for backend)")
     parser.add_argument("-v", "--vfats", action="store", nargs='+', dest="vfats", help="vfats = list of VFAT numbers (0-23)")
     parser.add_argument("-c", "--channels", action="store", nargs='+', dest="channels", help="channels = list of channels (default: 0-127)")
+    parser.add_argument("-x", "--threshold", action="store", dest="threshold", help="threshold = the CFG_THR_ARM_DAC value (default=configured value of VFAT)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
@@ -217,7 +221,14 @@ if __name__ == '__main__':
                 print (Colors.YELLOW + "Invalid channel, only allowed 0-127" + Colors.ENDC)
                 sys.exit()
             channel_list.append(c_int)
-           
+
+    threshold = -9999
+    if args.threshold is not None:
+        threshold = int(args.threshold)
+        if threshold not in range(0,256):
+            print (Colors.YELLOW + "Threshold has to 8 bits (0-255)" + Colors.ENDC)
+            sys.exit()
+
     step = int(args.step)
     if step not in range(1,257):
         print (Colors.YELLOW + "Step size can only be between 1 and 256" + Colors.ENDC)
@@ -227,7 +238,7 @@ if __name__ == '__main__':
     if args.nl1a is not None:
         nl1a = int(args.nl1a)
         if nl1a > (2**24 - 1):
-            print (Colors.YELLOW + "Number of L1A cycles can be maximum 1.68e7. Using time option for longer tests" + Colors.ENDC)
+            print (Colors.YELLOW + "Number of L1A cycles can be maximum 1.68e7" + Colors.ENDC)
             sys.exit()
     if nl1a==0:
         print (Colors.YELLOW + "Enter number of L1A cycles" + Colors.ENDC)
@@ -264,7 +275,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_scurve(args.system, int(args.ohid), vfat_list, channel_list, step, nl1a, l1a_bxgap)
+        lpgbt_vfat_scurve(args.system, int(args.ohid), vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
