@@ -329,7 +329,6 @@ def find_phase_center(err_list):
         # even windows
         if (ngood_max % 2 == 0):
             ngood_center=ngood_edge-(ngood_max/2)-1
-            print (ngood_edge, ngood_max)
             if (err_list_doubled[ngood_edge] > err_list_doubled[ngood_edge-ngood_max-1]):
                 ngood_center=ngood_center
             else:
