@@ -189,7 +189,11 @@ Use -h option for any script to check usage
 
 ```lpgbt_vfat_sbit_mapping.py```: S-bit mapping for VFATs (only works with test firmware)
 
+```lpgbt_vfat_sbit_noise_rate.py```: S-bit Noise rates for VFATs (only works with test firmware)
+
 ```lpgbt_vfat_sbit_phase_scan.py```: S-bit phase scan for VFATs (only works with test firmware)
+
+```lpgbt_vfat_sbit_scurve.py```: S-bit SCurve for VFATs (only works with test firmware)
 
 ```lpgbt_vfat_sbit_test.py```: S-bit testing for VFATs (only works with test firmware)
 
