@@ -407,7 +407,7 @@ if __name__ == '__main__':
             sys.exit()
         vfat_list.append(v)
 
-    nl1a = 100 # Nr. of L1A's
+    nl1a = 1000 # Nr. of L1A's
     l1a_bxgap = 500 # Gap between 2 L1A's in nr. of BX's
 
     if args.bestphase is not None:
