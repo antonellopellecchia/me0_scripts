@@ -126,7 +126,7 @@ def lpgbt_vfat_sbit(system, vfat_list, elink_list, step):
     print ("")
 
     # Looping over elinks
-    for elink in elink_List:
+    for elink in elink_list:
         print ("Elink: %d"%elink)
         write_backend_reg(elink_sbit_select_node, elink)
         for vfat in vfat_list:
