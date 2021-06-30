@@ -184,7 +184,7 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_
                 l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
                 calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
 
-                sbit_data[vfat][channel][charge]["events"] = 2*l1a_counter
+                sbit_data[vfat][channel][charge]["events"] = l1a_counter
                 sbit_data[vfat][channel][charge]["fired"] = read_backend_reg(channel_sbit_counter_node)
             # End of charge loop
             enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask channel and disable calpulsing
