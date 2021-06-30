@@ -8,7 +8,7 @@ import argparse
 if __name__ == '__main__':
 
     # Parsing arguments
-    parser = argparse.ArgumentParser(description='Plotting VFAT DAQ Cross Talk')
+    parser = argparse.ArgumentParser(description='Plotting VFAT Cross Talk')
     parser.add_argument("-f", "--filename", action="store", dest="filename", help="Cross talk result filename")
     args = parser.parse_args()
 

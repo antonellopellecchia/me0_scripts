@@ -9,7 +9,7 @@ import argparse
 if __name__ == '__main__':
 
     # Parsing arguments
-    parser = argparse.ArgumentParser(description='Plotting VFAT DAQ Register Scan')
+    parser = argparse.ArgumentParser(description='Plotting VFAT Register Scan')
     parser.add_argument("-f", "--filename", action="store", dest="filename", help="Register Scan result filename")
     parser.add_argument("-c", "--channels", action="store", nargs="+", dest="channels", help="Channels to plot for each VFAT")
     parser.add_argument("-d", "--dac", action="store", dest="dac", help="Register to plot")
