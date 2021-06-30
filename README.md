@@ -183,6 +183,8 @@ Use -h option for any script to check usage
 
 ```lpgbt_vfat_plot_reg_scan.py```: Register Scan Plotting using DAQ data for VFATs
 
+```lpgbt_vfat_plot_sbit_noise_rate.py```: Noise Rate Plotting using SBits for VFATs
+
 ```lpgbt_vfat_plot_scurve.py```: SCurve quick Plotting using DAQ data for VFATs
 
 ```lpgbt_vfat_reset.py```: reset VFAT
