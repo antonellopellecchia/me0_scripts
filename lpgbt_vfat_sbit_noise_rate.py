@@ -64,7 +64,7 @@ with open(latest_file) as input_file:
     s_bit_channel_mapping = json.load(input_file)
 
 
-def lpgbt_vfat_sbit(system, vfat_list, elink_list, step):
+def lpgbt_vfat_sbit(system, vfat_list, elink_list, step, runtime):
     if not os.path.exists("sbit_noise_results"):
         os.makedirs("sbit_noise_results")
     now = str(datetime.datetime.now())[:16]
@@ -137,12 +137,12 @@ def lpgbt_vfat_sbit(system, vfat_list, elink_list, step):
             for thr in range(0,256,step):
                 #print ("    Threshold: %d"%thr)
                 write_backend_reg(dac_node[vfat], thr)
-                sleep(1e-6)
+                sleep(1e-3)
 
                 # Count hits in elink in 1ms
                 write_backend_reg(reset_sbit_counter_node, 1)
-                sleep(1e-6)
-                sbit_data[vfat][elink][thr]["events"] = read_backend_reg(elink_sbit_counter_node)
+                sleep(runtime)
+                sbit_data[vfat][elink][thr]["fired"] = read_backend_reg(elink_sbit_counter_node)
                 sbit_data[vfat][elink][thr]["time"] = 1e-6 # 1 ms
             # End of charge loop
         # End of VFAT loop
@@ -162,7 +162,7 @@ def lpgbt_vfat_sbit(system, vfat_list, elink_list, step):
             for thr in range(0,256,1):
                 if thr not in sbit_data[vfat][elink]:
                     continue
-                file_out.write("%d    %d    %d    %d    %d\n"%(vfat, elink, thr, sbit_data[vfat][elink][thr]["fired"], sbit_data[vfat][elink][thr]["time"]))
+                file_out.write("%d    %d    %d    %d    %f\n"%(vfat, elink, thr, sbit_data[vfat][elink][thr]["fired"], sbit_data[vfat][elink][thr]["time"]))
 
     print ("")
     file_out.close()
@@ -179,6 +179,7 @@ if __name__ == '__main__':
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
     parser.add_argument("-e", "--elinks", action="store", nargs='+', dest="elinks", help="elinks = list of elinks (default: 0-7)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
+    parser.add_argument("-m", "--time", action="store", dest="time", default="1e-3", help="time = time for each elink (default= 1 ms)")
     parser.add_argument("-a", "--addr", action="store_true", dest="addr", help="if plugin card addressing needs should be enabled")
     args = parser.parse_args()
 
@@ -252,7 +253,7 @@ if __name__ == '__main__':
     
     # Running Sbit SCurve
     try:
-        lpgbt_vfat_sbit(args.system, vfat_list, elink_list, step)
+        lpgbt_vfat_sbit(args.system, vfat_list, elink_list, step, int(args.time))
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
