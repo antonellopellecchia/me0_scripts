@@ -63,6 +63,11 @@ print ("Using S-bit mapping file: %s\n"%(latest_file.split("sbit_mapping_results
 with open(latest_file) as input_file:
     s_bit_channel_mapping = json.load(input_file)
 
+for vfat in s_bit_channel_mapping:
+    for elink in s_bit_channel_mapping[vfat]:
+        for channel in s_bit_channel_mapping[vfat][elink]:
+            s_bit_channel_mapping[vfat][elink][channel] = int(s_bit_channel_mapping[vfat][elink][channel])
+
 
 def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap):
 
