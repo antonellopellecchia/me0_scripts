@@ -9,13 +9,18 @@ import argparse
 if __name__ == '__main__':
 
     # Parsing arguments
-    parser = argparse.ArgumentParser(description='Plotting VFAT DAQ SCurve')
+    parser = argparse.ArgumentParser(description='Plotting VFAT SCurve')
     parser.add_argument("-f", "--filename", action="store", dest="filename", help="SCurve result filename")
+    parser.add_argument("-t", "--type", action="store", dest="type", help="type = daq or sbit")
     parser.add_argument("-c", "--channels", action="store", nargs="+", dest="channels", help="Channels to plot for each VFAT")
     args = parser.parse_args()
 
     if args.channels is None:
         print(Colors.YELLOW + "Enter channel list to plot SCurves" + Colors.ENDC)
+        sys.exit()
+
+    if args.type not in ["daq", "sbit"]:
+        print(Colors.YELLOW + "Type can only be daq or sbit" + Colors.ENDC)
         sys.exit()
 
     plot_filename_prefix = args.filename.split(".txt")[0]
@@ -69,7 +74,10 @@ if __name__ == '__main__':
         fig, ax = plt.subplots()
         plt.xlabel('Injected Charge (DAC)')
         plt.ylabel('Fired Events / Total Events')
-        plt.ylim(-0.1,1.1)
+        if args.type == "daq":
+            plt.ylim(-0.1,1.1)
+        else:
+            plt.ylim(-0.1,2.1)
         for channel in args.channels:
             channel = int(channel)
             if channel not in scurve_result[vfat]:

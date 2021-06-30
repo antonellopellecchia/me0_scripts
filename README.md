@@ -157,33 +157,35 @@ Use -h option for any script to check usage
 
 ```lpgbt_status.py```: check status of lpGBT
 
+```lpgbt_vfat_analysis_scurve.py```: SCurve Analysis (fitting) using DAQ data for VFATs
+
 ```lpgbt_vfat_config.py```: configure VFAT
 
 ```lpgbt_vfat_dac_scan.py```: VFAT DAC Scan
 
 ```lpgbt_vfat_daq_crosstalk.py```: Scan for checking cross talk using DAQ data for VFATs
 
-```lpgbt_vfat_daq_crosstalk_plot.py```: Plotting scan for checking cross talk using DAQ data for VFATs
-
 ```lpgbt_vfat_daq_hitmap.py```: Hit/Noise map using DAQ data for VFATs
-
-```lpgbt_vfat_daq_hitmap_plot.py```: Plotting Hit/Noise map using DAQ data for VFATs
 
 ```lpgbt_vfat_daq_reg_scan.py```: Scan register values using DAQ data for VFATs
 
-```lpgbt_vfat_daq_reg_scan_plot.py```: Register Scan Plotting using DAQ data for VFATs
-
 ```lpgbt_vfat_daq_scurve.py```: SCurve using DAQ data for VFATs
-
-```lpgbt_vfat_daq_scurve_analysis.py```: SCurve Analysis (fitting) using DAQ data for VFATs
-
-```lpgbt_vfat_daq_scurve_plot.py```: SCurve quick Plotting using DAQ data for VFATs
 
 ```lpgbt_vfat_daq_test.py```: bit error ratio tests by reading DAQ data packets from VFATs
 
 ```lpgbt_vfat_elink_scan.py```: scan VFAT vs elink 
 
 ```lpgbt_vfat_phase_scan.py```: phase scan for VFAT elinks and set optimal phase setting
+
+```lpgbt_vfat_plot_crosstalk.py```: Plotting scan for checking cross talk using DAQ data for VFATs
+
+```lpgbt_vfat_plot_hitmap.py```: Plotting Hit/Noise map using DAQ data for VFATs
+
+```lpgbt_vfat_plot_reg_scan.py```: Register Scan Plotting using DAQ data for VFATs
+
+```lpgbt_vfat_plot_sbit_noise_rate.py```: Noise Rate Plotting using SBits for VFATs
+
+```lpgbt_vfat_plot_scurve.py```: SCurve quick Plotting using DAQ data for VFATs
 
 ```lpgbt_vfat_reset.py```: reset VFAT
 

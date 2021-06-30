@@ -22,16 +22,16 @@ with open(latest_file) as input_file:
     s_bit_channel_mapping = json.load(input_file)
 
 
-def lpgbt_vfat_sbit(system, oh_select, vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap):
-    if not os.path.exists("sbit_scurve_results"):
-        os.makedirs("sbit_scurve_results")
+def lpgbt_vfat_sbit(system, oh_select, vfat_list, elink_list, step, runtime):
+    if not os.path.exists("sbit_noise_results"):
+        os.makedirs("sbit_noise_results")
     now = str(datetime.datetime.now())[:16]
     now = now.replace(":", "_")
     now = now.replace(" ", "_")
-    foldername = "sbit_scurve_results/"
-    filename = foldername + "vfat_sbit_scurve_" + now + ".txt"
+    foldername = "sbit_noise_results/"
+    filename = foldername + "vfat_sbit_noise_" + now + ".txt"
     file_out = open(filename,"w+")
-    file_out.write("vfat    channel    charge    fired    events\n")
+    file_out.write("vfat    elink    threshold    fired    time\n")
 
     vfat_oh_link_reset()
     global_reset()
@@ -39,7 +39,6 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, channel_list, threshold, step,
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 1)
 
     sbit_data = {}
-    cal_mode = {}
     # Check ready and get nodes
     for vfat in vfat_list:
         lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
@@ -47,12 +46,8 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, channel_list, threshold, step,
 
         print("Configuring VFAT %d" % (vfat))
         configureVfat(1, vfat, oh_select, 0)
-        if threshold != -9999:
-            print("Setting threshold = %d (DAC)"%threshold)
-            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_THR_ARM_DAC"%(oh_select,vfat)), threshold)
-        for channel in channel_list:
-            enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask all channels and disable calpulsing
-        cal_mode[vfat] = read_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)))
+        for channel in range(0,128):
+            enableVfatchannel(vfat, oh_select, channel, 0, 0) # unmask all channels and disable calpulsing
 
         link_good_node = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.LINK_GOOD" % (oh_select, vfat))
         sync_error_node = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.SYNC_ERR_CNT" % (oh_select, vfat))
@@ -63,31 +58,12 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, channel_list, threshold, step,
             rw_terminate()
 
         sbit_data[vfat] = {}
-        for channel in channel_list:
-            sbit_data[vfat][channel] = {}
-            for c in range(0,256,step):
-                if cal_mode[vfat] == 1:
-                    charge = 255 - c
-                else:
-                    charge = c
-                sbit_data[vfat][channel][charge] = {}
-                sbit_data[vfat][channel][charge]["events"] = -9999
-                sbit_data[vfat][channel][charge]["fired"] = -9999
-
-    # Configure TTC generator
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET"), 1)
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET"), 1)
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), l1a_bxgap)
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), nl1a)
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 50) # 50 BX between Calpulse and L1A
-
-    ttc_enable_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE")
-    ttc_reset_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET")
-    ttc_cyclic_start_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START")
-    cyclic_running_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_RUNNING")
-    l1a_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.L1A")
-    calpulse_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.CALPULSE")
+        for elink in elink_list:
+            sbit_data[vfat][elink] = {}
+            for thr in range(0,256,step):
+                sbit_data[vfat][elink][thr] = {}
+                sbit_data[vfat][elink][thr]["time"] = -9999
+                sbit_data[vfat][elink][thr]["fired"] = -9999
 
     # Nodes for Sbit counters
     vfat_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_VFAT_SBIT_ME0") # VFAT for reading S-bits
@@ -98,54 +74,33 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, channel_list, threshold, step,
     reset_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.CTRL.SBIT_TEST_RESET")  # To reset all S-bit counters
 
     dac_node = {}
-    dac = "CFG_CAL_DAC"
+    dac = "CFG_THR_ARM_DAC"
     for vfat in vfat_list:
         dac_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.%s"%(oh_select, vfat, dac))
 
-    print ("\nRunning Sbit SCurves for %.2e L1A cycles for VFATs:" % (nl1a))
+    print ("\nRunning Sbit Noise Scans for VFATs:")
     print (vfat_list)
     print ("")
 
-    # Looping over channels
-    for channel in channel_list:
-        print ("Channel: %d"%channel)
-        elink = channel/16
+    # Looping over elinks
+    for elink in elink_list:
+        print ("Elink: %d"%elink)
+        write_backend_reg(elink_sbit_select_node, elink)
         for vfat in vfat_list:
-            enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
             write_backend_reg(vfat_sbit_select_node, vfat)
-            if s_bit_channel_mapping[str(vfat)][str(elink)][str(channel)] == -9999:
-                print (Colors.YELLOW + "    Bad channel (from S-bit mapping) %02d on VFAT %02d"%(channel,vfat) + Colors.ENDC)
-                continue
-            write_backend_reg(channel_sbit_select_node, s_bit_channel_mapping[str(vfat)][str(elink)][str(channel)])
 
-            # Looping over charge
-            for c in range(0,256,step):
-                if cal_mode[vfat] == 1:
-                    charge = 255 - c
-                else:
-                    charge = c
-                #print ("    Injected Charge: %d"%charge)
-                write_backend_reg(dac_node[vfat], c)
+            # Looping over threshold
+            for thr in range(0,256,step):
+                #print ("    Threshold: %d"%thr)
+                write_backend_reg(dac_node[vfat], thr)
+                sleep(1e-3)
 
-                # Start the cyclic generator
-                global_reset()
+                # Count hits in elink in given time
                 write_backend_reg(reset_sbit_counter_node, 1)
-                l1a_counter_initial = read_backend_reg(l1a_node)
-                calpulse_counter_initial = read_backend_reg(calpulse_node)
-                write_backend_reg(ttc_enable_node, 1)
-                write_backend_reg(ttc_cyclic_start_node, 1)
-                cyclic_running = 1
-                while (cyclic_running):
-                    cyclic_running = read_backend_reg(cyclic_running_node)
-                # Stop the cyclic generator
-                write_backend_reg(ttc_reset_node, 1)
-                l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
-                calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
-
-                sbit_data[vfat][channel][charge]["events"] = calpulse_counter
-                sbit_data[vfat][channel][charge]["fired"] = read_backend_reg(channel_sbit_counter_node)
+                sleep(runtime)
+                sbit_data[vfat][elink][thr]["fired"] = read_backend_reg(elink_sbit_counter_node)
+                sbit_data[vfat][elink][thr]["time"] = runtime 
             # End of charge loop
-            enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask channel and disable calpulsing
         # End of VFAT loop
     # End of channel loop
     print ("")
@@ -153,18 +108,16 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, channel_list, threshold, step,
     # Disable channels on VFATs
     for vfat in vfat_list:
         print("Unconfiguring VFAT %d" % (vfat))
-        for channel in channel_list:
-            enableVfatchannel(vfat, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat, oh_select, 0)
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 0)
 
     # Writing Results
     for vfat in vfat_list:
-        for channel in channel_list:
-            for charge in range(0,256,1):
-                if charge not in sbit_data[vfat][channel]:
+        for elink in elink_list:
+            for thr in range(0,256,1):
+                if thr not in sbit_data[vfat][elink]:
                     continue
-                file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel, charge, sbit_data[vfat][channel][charge]["fired"], sbit_data[vfat][channel][charge]["events"]))
+                file_out.write("%d    %d    %d    %d    %f\n"%(vfat, elink, thr, sbit_data[vfat][elink][thr]["fired"], sbit_data[vfat][elink][thr]["time"]))
 
     print ("")
     file_out.close()
@@ -173,17 +126,15 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, channel_list, threshold, step,
 if __name__ == '__main__':
 
     # Parsing arguments
-    parser = argparse.ArgumentParser(description='LpGBT VFAT S-Bit SCurve')
+    parser = argparse.ArgumentParser(description='LpGBT VFAT S-Bit Noise Rate')
     parser.add_argument("-s", "--system", action="store", dest="system", help="system = backend or dryrun")
     #parser.add_argument("-l", "--lpgbt", action="store", dest="lpgbt", help="lpgbt = boss or sub")
     parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-1")
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0-7 (only needed for backend)")
     parser.add_argument("-v", "--vfats", action="store", dest="vfats", nargs='+', help="vfats = VFAT number (0-23)")
-    parser.add_argument("-c", "--channels", action="store", nargs='+', dest="channels", help="channels = list of channels (default: 0-127)")
-    parser.add_argument("-x", "--threshold", action="store", dest="threshold", help="threshold = the CFG_THR_ARM_DAC value (default=configured value of VFAT)")
+    parser.add_argument("-e", "--elinks", action="store", nargs='+', dest="elinks", help="elinks = list of elinks (default: 0-7)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
-    parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
-    parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
+    parser.add_argument("-m", "--time", action="store", dest="time", default="0.001", help="time = time for each elink (default= 1 ms)")
     parser.add_argument("-a", "--addr", action="store", nargs='+', dest="addr", help="addr = list of VFATs to enable HDLC addressing")
     args = parser.parse_args()
 
@@ -223,46 +174,21 @@ if __name__ == '__main__':
             sys.exit()
         vfat_list.append(v_int)
 
-    threshold = -9999
-    if args.threshold is not None:
-        threshold = int(args.threshold)
-        if threshold not in range(0,256):
-            print (Colors.YELLOW + "Threshold has to 8 bits (0-255)" + Colors.ENDC)
-            sys.exit()
-
     step = int(args.step)
     if step not in range(1,257):
         print (Colors.YELLOW + "Step size can only be between 1 and 256" + Colors.ENDC)
         sys.exit()
 
-    channel_list = []
-    if args.channels is None:
-        channel_list = range(0,128)
+    elink_list = []
+    if args.elinks is None:
+        elink_list = range(0,8)
     else:
-        for c in args.channels:
-            c_int = int(c)
-            if c_int not in range(0,128):
-                print (Colors.YELLOW + "Invalid channel, only allowed 0-127" + Colors.ENDC)
+        for e in args.elinks:
+            e_int = int(e)
+            if e_int not in range(0,8):
+                print (Colors.YELLOW + "Invalid elink, only allowed 0-7" + Colors.ENDC)
                 sys.exit()
-            channel_list.append(c_int)
-
-    nl1a = 0
-    if args.nl1a is not None:
-        nl1a = int(args.nl1a)
-        if nl1a > (2**32 - 1):
-            print (Colors.YELLOW + "Number of L1A cycles can be maximum 4.29e9" + Colors.ENDC)
-            sys.exit()
-    if nl1a==0:
-        print (Colors.YELLOW + "Enter number of L1A cycles" + Colors.ENDC)
-        sys.exit()
-
-    l1a_bxgap = int(args.bxgap)
-    l1a_timegap = l1a_bxgap * 25 * 0.001 # in microseconds
-    if l1a_bxgap<25:
-        print (Colors.YELLOW + "Gap between L1A's should be at least 25 BX to read out enitre DAQ data packets" + Colors.ENDC)
-        sys.exit()
-    else:
-        print ("Gap between consecutive L1A or CalPulses = %d BX = %.2f us" %(l1a_bxgap, l1a_timegap))
+            elink_list.append(e_int)
 
     # Parsing Registers XML File
     print("Parsing xml file...")
@@ -287,7 +213,7 @@ if __name__ == '__main__':
     
     # Running Sbit SCurve
     try:
-        lpgbt_vfat_sbit(args.system, int(args.ohid), vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap)
+        lpgbt_vfat_sbit(args.system, int(args.ohid), vfat_list, elink_list, step, float(args.time))
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()

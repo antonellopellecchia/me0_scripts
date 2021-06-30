@@ -8,7 +8,7 @@ import argparse
 if __name__ == '__main__':
 
     # Parsing arguments
-    parser = argparse.ArgumentParser(description='Plotting VFAT DAQ HitMap')
+    parser = argparse.ArgumentParser(description='Plotting VFAT HitMap')
     parser.add_argument("-f", "--filename", action="store", dest="filename", help="Hit/Noise map result filename")
     parser.add_argument("-t", "--type", action="store", dest="type", help="type = hit or noise")
     args = parser.parse_args()

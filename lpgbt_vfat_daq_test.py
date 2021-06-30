@@ -317,7 +317,7 @@ if __name__ == '__main__':
         runtime = float(args.time)
         if args.nl1a is not None:
             if args.time is not None:
-                print (Colors.YELLOW + "Cannot give both tiime and number of L1A cycles" + Colors.ENDC)
+                print (Colors.YELLOW + "Cannot give both time and number of L1A cycles" + Colors.ENDC)
                 sys.exit()
     if nl1a==0 and runtime==0:
         print (Colors.YELLOW + "Enter either runtime or number of L1A cycles" + Colors.ENDC)
