@@ -63,14 +63,8 @@ print ("Using S-bit mapping file: %s\n"%(latest_file.split("sbit_mapping_results
 with open(latest_file) as input_file:
     s_bit_channel_mapping = json.load(input_file)
 
-for vfat in s_bit_channel_mapping:
-    for elink in s_bit_channel_mapping[vfat]:
-        for channel in s_bit_channel_mapping[vfat][elink]:
-            s_bit_channel_mapping[vfat][elink][channel] = int(s_bit_channel_mapping[vfat][elink][channel])
-
 
 def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap):
-
     if not os.path.exists("sbit_scurve_results"):
         os.makedirs("sbit_scurve_results")
     now = str(datetime.datetime.now())[:16]
@@ -161,10 +155,10 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_
         for vfat in vfat_list:
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
             write_backend_reg(vfat_sbit_select_node, vfat-6*oh_select)
-            if s_bit_channel_mapping[vfat][elink][channel] == -9999:
+            if s_bit_channel_mapping[str(vfat)][str(elink)][str(channel)] == -9999:
                 print (Colors.YELLOW + "    Bad channel (from S-bit mapping) %02d on VFAT %02d"%(channel,vfat) + Colors.ENDC)
                 continue
-            write_backend_reg(channel_sbit_select_node, s_bit_channel_mapping[vfat][elink][channel])
+            write_backend_reg(channel_sbit_select_node, s_bit_channel_mapping[str(vfat)][str(elink)][str(channel)])
 
             # Looping over charge
             for c in range(0,256,step):
