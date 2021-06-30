@@ -179,7 +179,7 @@ if __name__ == '__main__':
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
     parser.add_argument("-e", "--elinks", action="store", nargs='+', dest="elinks", help="elinks = list of elinks (default: 0-7)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
-    parser.add_argument("-m", "--time", action="store", dest="time", default="1e-3", help="time = time for each elink (default= 1 ms)")
+    parser.add_argument("-m", "--time", action="store", dest="time", default="0.001", help="time = time for each elink (default= 1 ms)")
     parser.add_argument("-a", "--addr", action="store_true", dest="addr", help="if plugin card addressing needs should be enabled")
     args = parser.parse_args()
 
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     
     # Running Sbit SCurve
     try:
-        lpgbt_vfat_sbit(args.system, vfat_list, elink_list, step, int(args.time))
+        lpgbt_vfat_sbit(args.system, vfat_list, elink_list, step, float(args.time))
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
