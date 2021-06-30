@@ -293,21 +293,11 @@ if __name__ == '__main__':
     nl1a = 0
     if args.nl1a is not None:
         nl1a = int(args.nl1a)
-        if args.time is not None:
-            print (Colors.YELLOW + "Cannot give both time and number of L1A cycles" + Colors.ENDC)
+        if nl1a > (2**24 - 1):
+            print (Colors.YELLOW + "Number of L1A cycles can be maximum 1.68e7" + Colors.ENDC)
             sys.exit()
-        if nl1a > (2**32 - 1):
-            print (Colors.YELLOW + "Number of L1A cycles can be maximum 4.29e9. Using time option for longer tests" + Colors.ENDC)
-            sys.exit()
-    runtime = 0
-    if args.time is not None:
-        runtime = float(args.time)
-        if args.nl1a is not None:
-            if args.time is not None:
-                print (Colors.YELLOW + "Cannot give both tiime and number of L1A cycles" + Colors.ENDC)
-                sys.exit()
-    if nl1a==0 and runtime==0:
-        print (Colors.YELLOW + "Enter either runtime or number of L1A cycles" + Colors.ENDC)
+    if nl1a==0:
+        print (Colors.YELLOW + "Enter number of L1A cycles" + Colors.ENDC)
         sys.exit()
 
     l1a_bxgap = int(args.bxgap)
