@@ -151,7 +151,7 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_
     # Looping over channels
     for channel in channel_list:
         print ("Channel: %d"%channel)
-        elink = channel%16
+        elink = channel/16
         for vfat in vfat_list:
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
             write_backend_reg(vfat_sbit_select_node, vfat-6*oh_select)
