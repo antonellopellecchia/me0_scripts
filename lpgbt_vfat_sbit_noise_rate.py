@@ -139,11 +139,11 @@ def lpgbt_vfat_sbit(system, vfat_list, elink_list, step, runtime):
                 write_backend_reg(dac_node[vfat], thr)
                 sleep(1e-3)
 
-                # Count hits in elink in 1ms
+                # Count hits in elink in given time
                 write_backend_reg(reset_sbit_counter_node, 1)
                 sleep(runtime)
                 sbit_data[vfat][elink][thr]["fired"] = read_backend_reg(elink_sbit_counter_node)
-                sbit_data[vfat][elink][thr]["time"] = 1e-6 # 1 ms
+                sbit_data[vfat][elink][thr]["time"] = runtime 
             # End of charge loop
         # End of VFAT loop
     # End of channel loop
