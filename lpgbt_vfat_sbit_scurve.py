@@ -63,7 +63,7 @@ with open(latest_file) as input_file:
     s_bit_channel_mapping = json.load(input_file)
 
 
-def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, runtime, l1a_bxgap):
+def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap):
 
     if not os.path.exists("sbit_scurve_results"):
         os.makedirs("sbit_scurve_results")
@@ -323,7 +323,7 @@ if __name__ == '__main__':
     
     # Running Sbit SCurve
     try:
-        lpgbt_vfat_sbit(args.system, vfat_list, channel_list, threshold, step, nl1a, runtime, l1a_bxgap)
+        lpgbt_vfat_sbit(args.system, vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
