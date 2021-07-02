@@ -159,6 +159,8 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, cal_dac, nl1a, l1a_bxgap):
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel_inj, channel_read, sbit_data[vfat][channel_inj][channel_read]["fired"], sbit_data[vfat][channel_inj][channel_read]["events"]))
             if crosstalk_channel_list != "":
                 print ("Cross Talk for Channel %d in channels: %s"%(channel_inj, crosstalk_channel_list))
+            else:
+                print ("No Cross Talk between channels")
 
     print ("")
     file_out.close()
