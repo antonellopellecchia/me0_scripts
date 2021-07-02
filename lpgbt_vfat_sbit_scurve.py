@@ -95,7 +95,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, channel_list, threshold, step,
     channel_sbit_select_node = get_rwreg_node("GEM_AMC.TRIGGER.TEST_SEL_SBIT_ME0") # Node for selecting S-bit to count
     elink_sbit_counter_node = get_rwreg_node("GEM_AMC.TRIGGER.TEST_SBIT0XE_COUNT_ME0") # S-bit counter for elink
     channel_sbit_counter_node = get_rwreg_node("GEM_AMC.TRIGGER.TEST_SBIT0XS_COUNT_ME0") # S-bit counter for specific channel
-    reset_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.CTRL.SBIT_TEST_RESET")  # To reset all S-bit counters
+    reset_sbit_counter_node = get_rwreg_node("GEM_AMC.TRIGGER.CTRL.SBIT_TEST_RESET")  # To reset all S-bit counters
 
     dac_node = {}
     dac = "CFG_CAL_DAC"
