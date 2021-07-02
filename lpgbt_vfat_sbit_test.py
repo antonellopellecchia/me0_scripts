@@ -92,9 +92,11 @@ def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list
 
         if parallel:
             for channel in channel_list[elink]:
-                print("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
-                file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n\n" % (channel, elink))
+                print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
+                file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
                 enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
+            print("")
+            file_out.write("\n")
 
         for channel, sbit_read in zip(channel_list[elink], sbit_list[elink]):
             # Reset L1A, CalPulse and S-bit counters
