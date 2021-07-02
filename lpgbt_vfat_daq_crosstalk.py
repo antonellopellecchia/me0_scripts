@@ -139,7 +139,7 @@ def lpgbt_vfat_crosstalk(system, oh_select, vfat_list, cal_dac, nl1a, l1a_bxgap)
         for channel_inj in channel_list:
             crosstalk_channel_list = ""
             for channel_read in channel_list:
-                if daq_data[vfat][channel_inj][channel_read]["fired"] > 0:
+                if channel_read != channel_inj and daq_data[vfat][channel_inj][channel_read]["fired"] > 0:
                     crosstalk_channel_list += " %d,"%channel_read
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel_inj, channel_read, daq_data[vfat][channel_inj][channel_read]["fired"], daq_data[vfat][channel_inj][channel_read]["events"]))
             if crosstalk_channel_list != "":
