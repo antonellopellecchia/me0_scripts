@@ -38,11 +38,11 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, nl1a, l1a_bxgap):
         l1a_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.L1A")
         calpulse_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.CALPULSE")
 
-        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_VFAT_SBIT_ME0"), vfat) # Select VFAT for reading S-bits
-        elink_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_ELINK_SBIT_ME0") # Node for selecting Elink to count
-        channel_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_SBIT_ME0") # Node for selecting S-bit to count
-        elink_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SBIT0XE_COUNT_ME0") # S-bit counter for elink
-        channel_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SBIT0XS_COUNT_ME0") # S-bit counter for specific channel
+        write_backend_reg(get_rwreg_node("GEM_AMC.TRIGGER.TEST_SEL_VFAT_SBIT_ME0"), vfat) # Select VFAT for reading S-bits
+        elink_sbit_select_node = get_rwreg_node("GEM_AMC.TRIGGER.TEST_SEL_ELINK_SBIT_ME0") # Node for selecting Elink to count
+        channel_sbit_select_node = get_rwreg_node("GEM_AMC.TRIGGER.TEST_SEL_SBIT_ME0") # Node for selecting S-bit to count
+        elink_sbit_counter_node = get_rwreg_node("GEM_AMC.TRIGGER.TEST_SBIT0XE_COUNT_ME0") # S-bit counter for elink
+        channel_sbit_counter_node = get_rwreg_node("GEM_AMC.TRIGGER.TEST_SBIT0XS_COUNT_ME0") # S-bit counter for specific channel
         reset_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.CTRL.SBIT_TEST_RESET")  # To reset all S-bit counters
 
         # Configure the pulsing VFAT
