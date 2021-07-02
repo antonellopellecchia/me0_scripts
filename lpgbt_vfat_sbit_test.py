@@ -49,7 +49,7 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, nl1a, runtime, l1a_bxgap):
+def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel, nl1a, runtime, l1a_bxgap):
     file_out = open("vfat_sbit_test_outtput.txt", "w")
     print ("LPGBT VFAT S-Bit Test\n")
     file_out.write("LPGBT VFAT S-Bit Test\n\n")
@@ -107,6 +107,8 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, nl1a, run
     print("Configuring VFAT %02d" % (vfat))
     file_out.write("Configuring VFAT %02d\n" % (vfat))
     configureVfat(1, vfat-6*oh_select, oh_select, 0)
+    for i in range(128):
+        enableVfatchannel(vfat-6*oh_select, oh_select, i, 1, 0) # mask all channels and disable calpulsing
 
     for elink in elink_list:
         print ("Channel List in ELINK# %02d:" %(elink))
@@ -129,6 +131,10 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, nl1a, run
         l1a_counter_list[elink]  = {}
         calpulse_counter_list[elink]  = {}
 
+        if parallel:
+            for channel in channel_list[elink]:
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
+
         for channel, sbit_read in zip(channel_list[elink], sbit_list[elink]):
             # Reset L1A, CalPulse and S-bit counters
             global_reset()
@@ -137,9 +143,8 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, nl1a, run
             # Enabling the pulsing channel
             print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
             file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
-            for i in range(128):
-                enableVfatchannel(vfat-6*oh_select, oh_select, i, 1, 0) # mask all channels and disable calpulsing
-            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
+            if not parallel:
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
 
             write_backend_reg(elink_sbit_select_node, elink) # Select elink for S-bit counter
             write_backend_reg(channel_sbit_select_node, sbit_read) # Select S-bit for S-bit counter
@@ -204,7 +209,8 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, nl1a, run
             # Disabling the pulsing channels
             print("Disabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
             file_out.write("Disabling pulsing on channel %02d in ELINK# %02d:\n\n" % (channel, elink))
-            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
+            if not parallel:
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
 
             elink_sbit_counter = read_backend_reg(elink_sbit_counter_node) - elink_sbit_counter_initial
             channel_sbit_counter = read_backend_reg(channel_sbit_counter_node) - channel_sbit_counter_initial
@@ -214,6 +220,10 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, nl1a, run
             channel_sbit_counter_list[elink][channel] = channel_sbit_counter
             l1a_counter_list[elink][channel] = l1a_counter
             calpulse_counter_list[elink][channel] = calpulse_counter
+
+        if parallel:
+            for channel in channel_list[elink]:
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
 
         print ("")
         file_out.write("\n")
@@ -284,11 +294,12 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--system", action="store", dest="system", help="system = backend or dryrun")
     #parser.add_argument("-l", "--lpgbt", action="store", dest="lpgbt", help="lpgbt = boss or sub")
     parser.add_argument("-v", "--vfat", action="store", dest="vfat", help="vfat = VFAT number (0-11)")
+    #parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-7 (only needed for backend)")
+    #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
     parser.add_argument("-e", "--elink", action="store", dest="elink", nargs='+', help="elink = list of ELINKs (0-7) for S-bits")
     parser.add_argument("-c", "--channels", action="store", dest="channels", nargs='+', help="channels = list of channels for chosen VFAT and ELINK (list allowed only for 1 elink, by default all channels used for the elinks)")
     parser.add_argument("-x", "--sbits", action="store", dest="sbits", nargs='+', help="sbit = list of sbits to read for chosen VFAT and ELINK (list allowed only for 1 elink, by default all s-bits used for the elinks)")
-    #parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-7 (only needed for backend)")
-    #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
+    parser.add_argument("-p", "--parallel", action="store_true", dest="parallel", help="parallel = inject calpulse in all channels simultaneously (not a preferred option, only use for specific tests)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-t", "--time", action="store", dest="time", help="time = time for which to run the S-bit testing (in minutes)")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
@@ -436,7 +447,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_sbit(args.system, vfat, elink_list, channel_list, sbit_list, nl1a, runtime, l1a_bxgap)
+        lpgbt_vfat_sbit(args.system, vfat, elink_list, channel_list, sbit_list, args.parallel, nl1a, runtime, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
