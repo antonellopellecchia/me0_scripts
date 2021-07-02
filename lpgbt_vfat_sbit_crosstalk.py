@@ -114,9 +114,9 @@ def lpgbt_vfat_sbit(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
         for channel_inj in channel_list:
             sbit_data[vfat][channel_inj] = {}
             for channel_read in channel_list:
-                sbit_data[vfat][channel][channel_read] = {}
-                sbit_data[vfat][channel][channel_read]["events"] = -9999
-                sbit_data[vfat][channel][channel_read]["fired"] = -9999
+                sbit_data[vfat][channel_inj][channel_read] = {}
+                sbit_data[vfat][channel_inj][channel_read]["events"] = -9999
+                sbit_data[vfat][channel_inj][channel_read]["fired"] = -9999
 
     # Configure TTC generator
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET"), 1)
@@ -160,10 +160,10 @@ def lpgbt_vfat_sbit(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
 
             # Looping over channels to be read
             for channel_read in channel_list:
+                elink = channel_read/16
                 if s_bit_channel_mapping[str(vfat)][str(elink)][str(channel_read)] == -9999:
                     print (Colors.YELLOW + "    Bad channel (from S-bit mapping) %02d on VFAT %02d"%(channel_read,vfat) + Colors.ENDC)
                     continue
-                elink = channel_read/16
                 write_backend_reg(channel_sbit_select_node, s_bit_channel_mapping[str(vfat)][str(elink)][str(channel_read)])
 
                 # Start the cyclic generator
