@@ -300,7 +300,6 @@ if __name__ == '__main__':
 
     if args.elink is None:
         args.elink = ["0","1","2","3","4","5","6","7"]
-        sys.exit()
     if len(args.elink)>1 and args.channels is not None:
         print (Colors.YELLOW + "Channel list allowed only for 1 elink, by default all channels used for multiple elinks" + Colors.ENDC)
         sys.exit()
