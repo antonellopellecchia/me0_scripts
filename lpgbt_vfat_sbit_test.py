@@ -133,7 +133,11 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
 
         if parallel:
             for channel in channel_list[elink]:
+                print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
+                file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
+            print("")
+            file_out.write("\n")
 
         for channel, sbit_read in zip(channel_list[elink], sbit_list[elink]):
             # Reset L1A, CalPulse and S-bit counters
@@ -141,9 +145,9 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
             write_backend_reg(reset_sbit_counter_node, 1)
 
             # Enabling the pulsing channel
-            print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
-            file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
             if not parallel:
+                print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
+                file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
 
             write_backend_reg(elink_sbit_select_node, elink) # Select elink for S-bit counter
@@ -207,10 +211,12 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
             file_out.write("ELINK# %02d, Channel %02d, S-bit %02d: L1A and Calpulsing cycle completed in %.2f seconds (%.2f minutes)\n"%(elink, channel, sbit_read, total_time, total_time/60.0))
 
             # Disabling the pulsing channels
-            print("Disabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
-            file_out.write("Disabling pulsing on channel %02d in ELINK# %02d:\n\n" % (channel, elink))
             if not parallel:
+                print("Disabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
+                file_out.write("Disabling pulsing on channel %02d in ELINK# %02d:\n\n" % (channel, elink))
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
+            print("")
+            file_out.write("\n")
 
             elink_sbit_counter = read_backend_reg(elink_sbit_counter_node) - elink_sbit_counter_initial
             channel_sbit_counter = read_backend_reg(channel_sbit_counter_node) - channel_sbit_counter_initial
@@ -223,6 +229,8 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
 
         if parallel:
             for channel in channel_list[elink]:
+                print("Disabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
+                file_out.write("Disabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
 
         print ("")
@@ -334,7 +342,6 @@ if __name__ == '__main__':
 
     if args.elink is None:
         args.elink = ["0","1","2","3","4","5","6","7"]
-        sys.exit()
     if len(args.elink)>1 and args.channels is not None:
         print (Colors.YELLOW + "Channel list allowed only for 1 elink, by default all channels used for multiple elinks" + Colors.ENDC)
         sys.exit()
