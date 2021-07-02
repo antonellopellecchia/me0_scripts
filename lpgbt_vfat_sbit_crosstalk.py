@@ -64,9 +64,9 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, cal_dac, nl1a, l1a_bxgap):
         for channel_inj in channel_list:
             sbit_data[vfat][channel_inj] = {}
             for channel_read in channel_list:
-                sbit_data[vfat][channel][channel_read] = {}
-                sbit_data[vfat][channel][channel_read]["events"] = -9999
-                sbit_data[vfat][channel][channel_read]["fired"] = -9999
+                sbit_data[vfat][channel_inj][channel_read] = {}
+                sbit_data[vfat][channel_inj][channel_read]["events"] = -9999
+                sbit_data[vfat][channel_inj][channel_read]["fired"] = -9999
 
     # Configure TTC generator
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET"), 1)
