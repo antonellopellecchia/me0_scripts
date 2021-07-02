@@ -4,6 +4,8 @@ import datetime
 import sys
 import argparse
 import random
+import glob
+import json
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 # VFAT number: boss/sub, ohid, gbtid, elink
@@ -56,22 +58,37 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-def lpgbt_vfat_crosstalk(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
-    if not os.path.exists("daq_crosstalk_results"):
-        os.makedirs("daq_crosstalk_results")
+s_bit_channel_mapping = {}
+print ("")
+if not os.path.isdir("sbit_mapping_results"):
+    print (Colors.YELLOW + "Run the S-bit mapping first" + Colors.ENDC)
+    sys.exit()
+list_of_files = glob.glob("sbit_mapping_results/*.py")
+if len(list_of_files)>1:
+    print ("Mutliple S-bit mapping results found, using latest file")
+latest_file = max(list_of_files, key=os.path.getctime)
+print ("Using S-bit mapping file: %s\n"%(latest_file.split("sbit_mapping_results/")[1]))
+with open(latest_file) as input_file:
+    s_bit_channel_mapping = json.load(input_file)
+
+
+def lpgbt_vfat_sbit(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
+    if not os.path.exists("sbit_crosstalk_results"):
+        os.makedirs("sbit_crosstalk_results")
     now = str(datetime.datetime.now())[:16]
     now = now.replace(":", "_")
     now = now.replace(" ", "_")
-    foldername = "daq_crosstalk_results/"
-    filename = foldername + "vfat_crosstalk_caldac%d_"%cal_dac + now + ".txt"
+    foldername = "sbit_crosstalk_results/"
+    filename = foldername + "vfat_sbit_crosstalk_" + now + ".txt"
     file_out = open(filename,"w+")
     file_out.write("vfat    channel_inj    channel_read    fired    events\n")
 
     vfat_oh_link_reset()
     global_reset()
     sleep(0.1)
+    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 1)
 
-    daq_data = {}
+    sbit_data = {}
     cal_mode = {}
     channel_list = range(0,128)
     # Check ready and get nodes
@@ -93,13 +110,13 @@ def lpgbt_vfat_crosstalk(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
             print (Colors.RED + "Link is bad for VFAT# %02d"%(vfat) + Colors.ENDC)
             rw_terminate()
 
-        daq_data[vfat] = {}
+        sbit_data[vfat] = {}
         for channel_inj in channel_list:
-            daq_data[vfat][channel_inj] = {}
+            sbit_data[vfat][channel_inj] = {}
             for channel_read in channel_list:
-                daq_data[vfat][channel_inj][channel_read] = {}
-                daq_data[vfat][channel_inj][channel_read]["events"] = -9999
-                daq_data[vfat][channel_inj][channel_read]["fired"] = -9999
+                sbit_data[vfat][channel][channel_read] = {}
+                sbit_data[vfat][channel][channel_read]["events"] = -9999
+                sbit_data[vfat][channel][channel_read]["fired"] = -9999
 
     # Configure TTC generator
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET"), 1)
@@ -109,23 +126,6 @@ def lpgbt_vfat_crosstalk(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), nl1a)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 50) # 50 BX between Calpulse and L1A
 
-    # Setup the DAQ monitor
-    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
-    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_GLOBAL_OR"), 0)
-    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.OH_SELECT"), oh_select)
-    daq_monitor_reset_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.RESET")
-    daq_monitor_enable_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE")
-    daq_monitor_select_node = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.VFAT_CHANNEL_SELECT")
-
-    daq_monitor_event_count_node = {}
-    daq_monitor_fire_count_node = {}
-    dac = "CFG_CAL_DAC"
-    for vfat in vfat_list:
-        lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.%s"%(oh_select, vfat-6*oh_select, dac)), cal_dac)
-        daq_monitor_event_count_node[vfat] = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.GOOD_EVENTS_COUNT"%(vfat-6*oh_select))
-        daq_monitor_fire_count_node[vfat] = get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.VFAT%d.CHANNEL_FIRE_COUNT"%(vfat-6*oh_select))
-
     ttc_enable_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE")
     ttc_reset_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET")
     ttc_cyclic_start_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START")
@@ -133,7 +133,20 @@ def lpgbt_vfat_crosstalk(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
     l1a_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.L1A")
     calpulse_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.CALPULSE")
 
-    print ("\nRunning Crosstalk Scan for %.2e L1A cycles for VFATs:" % (nl1a))
+    # Nodes for Sbit counters
+    vfat_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_VFAT_SBIT_ME0") # VFAT for reading S-bits
+    elink_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_ELINK_SBIT_ME0") # Node for selecting Elink to count
+    channel_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_SBIT_ME0") # Node for selecting S-bit to count
+    elink_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SBIT0XE_COUNT_ME0") # S-bit counter for elink
+    channel_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SBIT0XS_COUNT_ME0") # S-bit counter for specific channel
+    reset_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.CTRL.SBIT_TEST_RESET")  # To reset all S-bit counters
+
+    dac = "CFG_CAL_DAC"
+    for vfat in vfat_list:
+        lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
+        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.%s"%(oh_select, vfat-6*oh_select, dac)), cal_dac)
+
+    print ("\nRunning Sbit Crosstalk Scans for %.2e L1A cycles for VFATs:" % (nl1a))
     print (vfat_list)
     print ("")
 
@@ -143,48 +156,47 @@ def lpgbt_vfat_crosstalk(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
         for vfat in vfat_list:
             lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
             enableVfatchannel(vfat-6*oh_select, oh_select, channel_inj, 0, 1) # enable calpulsing
+            write_backend_reg(vfat_sbit_select_node, vfat-6*oh_select)
 
-        # Looping over channels to be read
-        for channel_read in channel_list:
-            write_backend_reg(daq_monitor_select_node, channel_read)
-            write_backend_reg(daq_monitor_reset_node, 1)
-            write_backend_reg(daq_monitor_enable_node, 1)
+            # Looping over channels to be read
+            for channel_read in channel_list:
+                if s_bit_channel_mapping[str(vfat)][str(elink)][str(channel_read)] == -9999:
+                    print (Colors.YELLOW + "    Bad channel (from S-bit mapping) %02d on VFAT %02d"%(channel_read,vfat) + Colors.ENDC)
+                    continue
+                elink = channel_read/16
+                write_backend_reg(channel_sbit_select_node, s_bit_channel_mapping[str(vfat)][str(elink)][str(channel_read)])
 
-            # Start the cyclic generator
-            l1a_counter_initial = read_backend_reg(l1a_node)
-            calpulse_counter_initial = read_backend_reg(calpulse_node)
-            write_backend_reg(ttc_enable_node, 1)
-            write_backend_reg(ttc_cyclic_start_node, 1)
-            cyclic_running = 1
-            while (cyclic_running):
-                cyclic_running = read_backend_reg(cyclic_running_node)
-            # Stop the cyclic generator
-            write_backend_reg(ttc_reset_node, 1)
-            l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
-            calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
-            write_backend_reg(daq_monitor_enable_node, 0)
+                # Start the cyclic generator
+                global_reset()
+                write_backend_reg(reset_sbit_counter_node, 1)
+                l1a_counter_initial = read_backend_reg(l1a_node)
+                calpulse_counter_initial = read_backend_reg(calpulse_node)
+                write_backend_reg(ttc_enable_node, 1)
+                write_backend_reg(ttc_cyclic_start_node, 1)
+                cyclic_running = 1
+                while (cyclic_running):
+                    cyclic_running = read_backend_reg(cyclic_running_node)
+                # Stop the cyclic generator
+                write_backend_reg(ttc_reset_node, 1)
+                l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
+                calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
 
-            # Looping over VFATs
-            for vfat in vfat_list:
-                daq_data[vfat][channel_inj][channel_read]["events"] = read_backend_reg(daq_monitor_event_count_node[vfat])
-                daq_data[vfat][channel_inj][channel_read]["fired"] = read_backend_reg(daq_monitor_fire_count_node[vfat])
-            # End of VFAT loop
-        # End of read channel loop
-
-        for vfat in vfat_list:
-            lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
+                sbit_data[vfat][channel_inj][channel_read]["events"] = calpulse_counter
+                sbit_data[vfat][channel_inj][channel_read]["fired"] = read_backend_reg(channel_sbit_counter_node)
+            # End of charge loop
             enableVfatchannel(vfat-6*oh_select, oh_select, channel_inj, 0, 0) # disable calpulsing
-    # End of injected channel loop
+        # End of VFAT loop
+    # End of channel loop
     print ("")
 
     # Disable channels on VFATs
     for vfat in vfat_list:
         lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-        enable_channel = 0
         print("Unconfiguring VFAT %d" % (vfat))
         for channel in channel_list:
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat-6*oh_select, oh_select, 0)
+    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 0)
 
     # Writing Results
     print ("\nCross Talk Results:\n")
@@ -192,18 +204,20 @@ def lpgbt_vfat_crosstalk(system, vfat_list, cal_dac, nl1a, l1a_bxgap):
         for channel_inj in channel_list:
             crosstalk_channel_list = ""
             for channel_read in channel_list:
-                if channel_read != channel_inj daq_data[vfat][channel_inj][channel_read]["fired"] > 0:
+                if channel_read != channel_inj and sbit_data[vfat][channel_inj][channel_read]["fired"] > 0:
                     crosstalk_channel_list += " %d,"%channel_read
-                file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel_inj, channel_read, daq_data[vfat][channel_inj][channel_read]["fired"], daq_data[vfat][channel_inj][channel_read]["events"]))
+                file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel_inj, channel_read, sbit_data[vfat][channel_inj][channel_read]["fired"], sbit_data[vfat][channel_inj][channel_read]["events"]))
             if crosstalk_channel_list != "":
                 print ("Cross Talk for Channel %d in channels: %s"%(channel_inj, crosstalk_channel_list))
 
     print ("")
     file_out.close()
+
+
 if __name__ == '__main__':
 
     # Parsing arguments
-    parser = argparse.ArgumentParser(description='LpGBT VFAT Cross Talk Check using DAQ data')
+    parser = argparse.ArgumentParser(description='LpGBT VFAT S-Bit Cross Talk')
     parser.add_argument("-s", "--system", action="store", dest="system", help="system = backend or dryrun")
     #parser.add_argument("-l", "--lpgbt", action="store", dest="lpgbt", help="lpgbt = boss or sub")
     parser.add_argument("-v", "--vfats", action="store", dest="vfats", nargs='+', help="vfats = list of VFATs (0-11) - only ones belonging to the same OH")
@@ -216,15 +230,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.system == "chc":
-        #print ("Using Rpi CHeeseCake for configuration")
+        #print ("Using Rpi CHeeseCake for S-bit test")
         print (Colors.YELLOW + "Only Backend or dryrun supported" + Colors.ENDC)
         sys.exit()
     elif args.system == "backend":
-        print ("Using Backend for configuration")
+        print ("Using Backend for S-bit test")
         #print ("Only chc (Rpi Cheesecake) or dryrun supported at the moment")
         #sys.exit()
     elif args.system == "dongle":
-        #print ("Using USB Dongle for configuration")
+        #print ("Using USB Dongle for S-bit test")
         print (Colors.YELLOW + "Only Backend or dryrun supported" + Colors.ENDC)
         sys.exit()
     elif args.system == "dryrun":
@@ -266,8 +280,8 @@ if __name__ == '__main__':
     nl1a = 0
     if args.nl1a is not None:
         nl1a = int(args.nl1a)
-        if nl1a > (2**24 - 1):
-            print (Colors.YELLOW + "Number of L1A cycles can be maximum 1.68e7" + Colors.ENDC)
+        if nl1a > (2**32 - 1):
+            print (Colors.YELLOW + "Number of L1A cycles can be maximum 4.29e9" + Colors.ENDC)
             sys.exit()
     if nl1a==0:
         print (Colors.YELLOW + "Enter number of L1A cycles" + Colors.ENDC)
@@ -280,7 +294,7 @@ if __name__ == '__main__':
         sys.exit()
     else:
         print ("Gap between consecutive L1A or CalPulses = %d BX = %.2f us" %(l1a_bxgap, l1a_timegap))
-        
+
     # Parsing Registers XML File
     print("Parsing xml file...")
     parseXML()
@@ -293,10 +307,10 @@ if __name__ == '__main__':
     if args.addr:
         print ("Enabling VFAT addressing for plugin cards")
         write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.USE_VFAT_ADDRESSING"), 1)
-
-    # Running Phase Scan
+    
+    # Running Sbit SCurve
     try:
-        lpgbt_vfat_crosstalk(args.system, vfat_list, cal_dac, nl1a, l1a_bxgap)
+        lpgbt_vfat_sbit(args.system, vfat_list, cal_dac , nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
