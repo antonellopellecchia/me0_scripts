@@ -149,10 +149,11 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, cal_dac, nl1a, l1a_bxgap):
     print ("\nCross Talk Results:\n")
     for vfat in vfat_list:
         for channel_inj in channel_list:
+            elink_inj = channel_inj/16
             crosstalk_channel_list = ""
             for channel_read in channel_list:
-                elink = channel_read/16
-                if s_bit_channel_mapping[str(vfat)][str(elink)][str(channel_read)] != s_bit_channel_mapping[str(vfat)][str(elink)][str(channel_inj)]:
+                elink_read = channel_read/16
+                if s_bit_channel_mapping[str(vfat)][str(elink_read)][str(channel_read)] != s_bit_channel_mapping[str(vfat)][str(elink_inj)][str(channel_inj)]:
                     if sbit_data[vfat][channel_inj][channel_read]["fired"] > 0:
                         crosstalk_channel_list += " %d,"%channel_read
                 file_out.write("%d    %d    %d    %d    %d\n"%(vfat, channel_inj, channel_read, sbit_data[vfat][channel_inj][channel_read]["fired"], sbit_data[vfat][channel_inj][channel_read]["events"]))
