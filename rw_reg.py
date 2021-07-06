@@ -3,7 +3,7 @@ import sys, os, subprocess
 from ctypes import *
 from config import *
 import imp
-from collections import OrderedDict()
+from collections import OrderedDict
 
 print ('Loading shared library: librwreg.so')
 lib_DEFAULT = "./lib/librwreg_backup.so"

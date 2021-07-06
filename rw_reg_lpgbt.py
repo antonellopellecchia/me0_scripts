@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as xml
 import sys, os, subprocess
-from collections import OrderedDict()
+from collections import OrderedDict
 
 DEBUG = True
 ADDRESS_TABLE_TOP = './address_table/lpgbt_registers.xml'
