@@ -277,8 +277,8 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
             # BER for Channel S-bit
             channel_n_err = s_bit_expected - channel_sbit_counter_list[elink][channel]
             if s_bit_expected == 0:
-                ber = 0
-                ber_ul = 0
+                channel_ber = 0
+                channel_ber_ul = 0
             else:
                 channel_ber = float(channel_n_err)/s_bit_expected
                 channel_ber_ul = 1.0/s_bit_expected

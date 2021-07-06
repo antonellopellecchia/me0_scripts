@@ -3,6 +3,7 @@ import sys, os, subprocess
 from ctypes import *
 from config import *
 import imp
+from collections import OrderedDict()
 
 print ('Loading shared library: librwreg.so')
 lib_DEFAULT = "./lib/librwreg_backup.so"
@@ -26,7 +27,7 @@ except:
 
 DEBUG = True
 ADDRESS_TABLE_DEFAULT = './address_table/gem_amc_backup.xml'
-nodes = {}
+nodes = OrderedDict()
 
 boardType = os.environ.get('BOARD_TYPE')
 if boardType is None:
