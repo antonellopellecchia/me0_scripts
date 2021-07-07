@@ -87,7 +87,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, cal_mode, cal_dac, nl1a, l1a_b
     if l1a_bxgap >= 40:
         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 25)
     else:
-        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 1)
+        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 2)
 
     ttc_enable_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE")
     ttc_reset_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET")
