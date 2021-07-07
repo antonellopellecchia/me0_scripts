@@ -7,7 +7,7 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_hitmap(system, oh_select, vfat_list, noise, low_thresh, cal_dac, nl1a, l1a_bxgap):
+def lpgbt_vfat_hitmap(system, oh_select, vfat_list, noise, low_thresh, cal_mode, cal_dac, nl1a, l1a_bxgap):
     if not os.path.exists("daq_hitmap_results"):
         os.makedirs("daq_hitmap_results")
     now = str(datetime.datetime.now())[:16]
@@ -39,6 +39,17 @@ def lpgbt_vfat_hitmap(system, oh_select, vfat_list, noise, low_thresh, cal_dac, 
             configureVfat(1, vfat, oh_select, 1)
         else:
             configureVfat(1, vfat, oh_select, 0)
+        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_LATENCY"% (oh_select, vfat)), 19)
+        if cal_mode == "voltage":
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 1)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 200)
+        elif cal_mode == "current":
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 2)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 0)
+        else:
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 0)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 0)
+            
         for channel in channel_list:
             enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask all channels and disable calpulsing
         cal_mode[vfat] = read_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)))
@@ -63,7 +74,7 @@ def lpgbt_vfat_hitmap(system, oh_select, vfat_list, noise, low_thresh, cal_dac, 
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), l1a_bxgap)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), nl1a)
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 50) # 50 BX between Calpulse and L1A
+    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 25)
 
     # Setup the DAQ monitor
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
@@ -159,7 +170,8 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--vfats", action="store", nargs='+', dest="vfats", help="vfats = list of VFAT numbers (0-23)")
     parser.add_argument("-z", "--noise", action="store_true", dest="noise", help="if you want noise map instead of hit map")
     parser.add_argument("-l", "--low_thresh", action="store_true", dest="low_thresh", help="if you want 0 thhreshold for VFATs to get noise")
-    parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", help="cal_dac = Value of CAL_DAC register (default  = 50)")
+    parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "voltage", help="cal_mode = voltage or current (default = voltage)")
+    parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", default = "100", help="cal_dac = Value of CAL_DAC register (default = 100)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
     parser.add_argument("-a", "--addr", action="store", nargs='+', dest="addr", help="addr = list of VFATs to enable HDLC addressing")
@@ -205,19 +217,18 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "VFATs can be configured with 0 threshold only for noise map" + Colors.ENDC)
         sys.exit()
 
-    cal_dac = -9999
     if args.noise:
-        if args.cal_dac is not None:
-            print (Colors.YELLOW + "CAL_DAC can't be given, doing noise scan" + Colors.ENDC)
-            sys.exit()
-    else:
-        if args.cal_dac is not None:
-            cal_dac = int(args.cal_dac)
-            if cal_dac > 255 or cal_dac < 0:
-                print (Colors.YELLOW + "CAL_DAC must be between 0 and 255" + Colors.ENDC)
-                sys.exit()
-        else:
-            cal_dac = 50
+        print ("Hitmap without Calpulse, just noise")
+        
+    cal_mode = args.cal_mode
+    if cal_mode not in ["voltage", "current"]:
+        print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
+        sys.exit()
+
+    cal_dac = int(args.cal_dac)
+    if cal_dac > 255 or cal_dac < 0:
+        print (Colors.YELLOW + "CAL_DAC must be between 0 and 255" + Colors.ENDC)
+        sys.exit()
 
     nl1a = 0
     if args.nl1a is not None:
@@ -260,7 +271,7 @@ if __name__ == '__main__':
 
     # Running Phase Scan
     try:
-        lpgbt_vfat_hitmap(args.system, int(args.ohid), vfat_list, args.noise, args.low_thresh, cal_dac, nl1a, l1a_bxgap)
+        lpgbt_vfat_hitmap(args.system, int(args.ohid), vfat_list, args.noise, args.low_thresh, cal_mode, cal_dac, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
