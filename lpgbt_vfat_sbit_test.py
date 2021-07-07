@@ -176,7 +176,7 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
             if l1a_bxgap >= 40:
                 write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 25)
             else:
-                write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 1)
+                write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 2)
 
             # Start the cyclic generator
             print ("ELINK# %02d, Channel %02d: Start L1A and Calpulsing cycle"%(elink, channel))
