@@ -6,7 +6,7 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_bert(system, oh_select, vfat_list, cal_mode, cal_dac, nl1a, runtime, l1a_bxgap, calpulse):
+def lpgbt_vfat_bert(system, oh_select, vfat_list, set_cal_mode, cal_dac, nl1a, runtime, l1a_bxgap, calpulse):
     file_out = open("vfat_daq_test_output.txt", "w+")
 
     if nl1a!=0:
@@ -51,10 +51,10 @@ def lpgbt_vfat_bert(system, oh_select, vfat_list, cal_mode, cal_dac, nl1a, runti
         else:
             configureVfat(1, vfat, oh_select, 1) # configure with 0 threshold to get noise
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_LATENCY"% (oh_select, vfat)), 18)
-        if cal_mode == "voltage":
+        if set_cal_mode == "voltage":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 1)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 200)
-        elif cal_mode == "current":
+        elif set_cal_mode == "current":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 2)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 0)
         else:

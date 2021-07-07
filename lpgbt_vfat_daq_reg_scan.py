@@ -7,7 +7,7 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_reg_scan(system, dac, oh_select, vfat_list, channel_list, lower, upper, step, cal_mode, cal_dac, nl1a, l1a_bxgap):
+def lpgbt_vfat_reg_scan(system, dac, oh_select, vfat_list, channel_list, lower, upper, step, set_cal_mode, cal_dac, nl1a, l1a_bxgap):
     print ("Performing Register Scan for: %s\n"%dac)
     if not os.path.exists("daq_reg_scan_results"):
         os.makedirs("daq_reg_scan_results")
@@ -32,10 +32,10 @@ def lpgbt_vfat_reg_scan(system, dac, oh_select, vfat_list, channel_list, lower, 
         print("Configuring VFAT %d" % (vfat))
         configureVfat(1, vfat, oh_select, 0)
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_LATENCY"% (oh_select, vfat)), 18)
-        if cal_mode == "voltage":
+        if set_cal_mode == "voltage":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 1)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 200)
-        elif cal_mode == "current":
+        elif set_cal_mode == "current":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 2)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 0)
         else:
@@ -70,7 +70,7 @@ def lpgbt_vfat_reg_scan(system, dac, oh_select, vfat_list, channel_list, lower, 
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), l1a_bxgap)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), nl1a)
-    if (cal_mode==1 and cal_dac==255) or (cal_mode==2 and cal_dac==0):
+    if (set_cal_mode=="voltage" and cal_dac==255) or (set_cal_mode=="current" and cal_dac==0):
         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 0) # Disable Calpulse
     else:
         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 25)

@@ -8,7 +8,7 @@ import json
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list, parallel, cal_mode, cal_dac, nl1a, runtime, l1a_bxgap):
+def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list, parallel, set_cal_mode, cal_dac, nl1a, runtime, l1a_bxgap):
     file_out = open("vfat_sbit_test_outtput.txt", "w")
     print ("LPGBT VFAT S-Bit Test\n")
     file_out.write("LPGBT VFAT S-Bit Test\n\n")
@@ -66,10 +66,10 @@ def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list
     print("Configuring VFAT %02d" % (vfat))
     file_out.write("Configuring VFAT %02d\n" % (vfat))
     configureVfat(1, vfat, oh_select, 0)
-    if cal_mode == "voltage":
+    if set_cal_mode == "voltage":
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 1)
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 200)
-    elif cal_mode == "current":
+    elif set_cal_mode == "current":
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 2)
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 0)
     else:

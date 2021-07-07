@@ -7,7 +7,7 @@ import random
 from lpgbt_vfat_config import configureVfat, enableVfatchannel
 
 
-def lpgbt_vfat_crosstalk(system, oh_select, vfat_list, cal_mode, cal_dac, nl1a, l1a_bxgap):
+def lpgbt_vfat_crosstalk(system, oh_select, vfat_list, set_cal_mode, cal_dac, nl1a, l1a_bxgap):
     if not os.path.exists("daq_crosstalk_results"):
         os.makedirs("daq_crosstalk_results")
     now = str(datetime.datetime.now())[:16]
@@ -33,10 +33,10 @@ def lpgbt_vfat_crosstalk(system, oh_select, vfat_list, cal_mode, cal_dac, nl1a, 
         print("Configuring VFAT %d" % (vfat))
         configureVfat(1, vfat, oh_select, 0)
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_LATENCY"% (oh_select, vfat)), 18)
-        if cal_mode == "voltage":
+        if set_cal_mode == "voltage":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 1)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 200)
-        elif cal_mode == "current":
+        elif set_cal_mode == "current":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat)), 2)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 0)
         else:
