@@ -64,7 +64,7 @@ with open(latest_file) as input_file:
     s_bit_channel_mapping = json.load(input_file)
 
 
-def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap):
+def lpgbt_vfat_sbit(system, vfat_list, channel_list, cal_mode, threshold, step, nl1a, l1a_bxgap):
     if not os.path.exists("sbit_scurve_results"):
         os.makedirs("sbit_scurve_results")
     now = str(datetime.datetime.now())[:16]
@@ -89,6 +89,16 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_
 
         print("Configuring VFAT %d" % (vfat))
         configureVfat(1, vfat-6*oh_select, oh_select, 0)
+        if cal_mode == "voltage":
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 1)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 200)
+        elif cal_mode == "current":
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 2)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 0)
+        else:
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 0)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 0)
+            
         if threshold != -9999:
             print("Setting threshold = %d (DAC)"%threshold)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_THR_ARM_DAC"%(oh_select,vfat-6*oh_select)), threshold)
@@ -122,7 +132,10 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, threshold, step, nl1a, l1a_
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), l1a_bxgap)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), nl1a)
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 50) # 50 BX between Calpulse and L1A
+    if l1a_bxgap >= 40:
+        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 25)
+    else:
+        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 1)
 
     ttc_enable_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE")
     ttc_reset_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET")
@@ -225,6 +238,7 @@ if __name__ == '__main__':
     #parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-7 (only needed for backend)")
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
     parser.add_argument("-c", "--channels", action="store", nargs='+', dest="channels", help="channels = list of channels (default: 0-127)")
+    parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "voltage", help="cal_mode = voltage or current (default = voltage)")
     parser.add_argument("-x", "--threshold", action="store", dest="threshold", help="threshold = the CFG_THR_ARM_DAC value (default=configured value of VFAT)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
@@ -271,6 +285,11 @@ if __name__ == '__main__':
                 print (Colors.YELLOW + "Only VFATs belonging to the same OH allowed" + Colors.ENDC)
                 sys.exit()
 
+    cal_mode = args.cal_mode
+    if cal_mode not in ["voltage", "current"]:
+        print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
+        sys.exit()
+
     threshold = -9999
     if args.threshold is not None:
         threshold = int(args.threshold)
@@ -306,11 +325,7 @@ if __name__ == '__main__':
 
     l1a_bxgap = int(args.bxgap)
     l1a_timegap = l1a_bxgap * 25 * 0.001 # in microseconds
-    if l1a_bxgap<25:
-        print (Colors.YELLOW + "Gap between L1A's should be at least 25 BX to read out enitre DAQ data packets" + Colors.ENDC)
-        sys.exit()
-    else:
-        print ("Gap between consecutive L1A or CalPulses = %d BX = %.2f us" %(l1a_bxgap, l1a_timegap))
+    print ("Gap between consecutive L1A or CalPulses = %d BX = %.2f us" %(l1a_bxgap, l1a_timegap))
 
     # Parsing Registers XML File
     print("Parsing xml file...")
@@ -327,7 +342,7 @@ if __name__ == '__main__':
     
     # Running Sbit SCurve
     try:
-        lpgbt_vfat_sbit(args.system, vfat_list, channel_list, threshold, step, nl1a, l1a_bxgap)
+        lpgbt_vfat_sbit(args.system, vfat_list, channel_list, cal_mode, threshold, step, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()

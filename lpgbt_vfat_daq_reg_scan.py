@@ -56,7 +56,7 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-def lpgbt_vfat_reg_scan(system, dac, vfat_list, channel_list, lower, upper, step, charge, nl1a, l1a_bxgap):
+def lpgbt_vfat_reg_scan(system, dac, vfat_list, channel_list, lower, upper, step, cal_mode, charge, nl1a, l1a_bxgap):
     print ("Performing Register Scan for: %s\n"%dac)
     if not os.path.exists("daq_reg_scan_results"):
         os.makedirs("daq_reg_scan_results")
@@ -80,6 +80,17 @@ def lpgbt_vfat_reg_scan(system, dac, vfat_list, channel_list, lower, upper, step
 
         print("Configuring VFAT %d" % (vfat))
         configureVfat(1, vfat-6*oh_select, oh_select, 0)
+        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_LATENCY"% (oh_select, vfat-6*oh_select)), 19)
+        if cal_mode == "voltage":
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 1)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 200)
+        elif cal_mode == "current":
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 2)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 0)
+        else:
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 0)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 0)
+            
         if charge != -9999:
             cal_mode = read_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)))
             cal_dac = charge
@@ -115,7 +126,7 @@ def lpgbt_vfat_reg_scan(system, dac, vfat_list, channel_list, lower, upper, step
     if charge == 0:
         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 0) # Disable Calpulse
     else:
-        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 50) # 50 BX between Calpulse and L1A
+        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 25)
 
     # Setup the DAQ monitor
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_TESTS.VFAT_DAQ_MONITOR.CTRL.ENABLE"), 1)
@@ -222,7 +233,8 @@ if __name__ == '__main__':
     parser.add_argument("-ll", "--lower", action="store", dest="lower", default="0", help="lower = Lower limit for register scan (default=0)")
     parser.add_argument("-ul", "--upper", action="store", dest="upper", default="255", help="upper = Upper limit for register scan (default=255)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for register scan (default=1)")
-    parser.add_argument("-i", "--charge", action="store", dest="charge", help="charge = injected charge (default: from VFAT configuration)")
+    parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "voltage", help="cal_mode = voltage or current (default = voltage)")
+    parser.add_argument("-i", "--charge", action="store", dest="charge", help="charge = injected charge (default: 100)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
     parser.add_argument("-a", "--addr", action="store_true", dest="addr", help="if plugin card addressing needs should be enabled")
@@ -299,6 +311,11 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "Step size can only be between 1 and 256" + Colors.ENDC)
         sys.exit()
 
+    cal_mode = args.cal_mode
+    if cal_mode not in ["voltage", "current"]:
+        print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
+        sys.exit()
+
     charge = -9999
     if args.charge is not None:
         charge = int(args.charge)
@@ -340,7 +357,7 @@ if __name__ == '__main__':
     # Running Phase Scan
     try:
         for reg in args.regs:
-            lpgbt_vfat_reg_scan(args.system, reg, vfat_list, channel_list, lower, upper, step, charge, nl1a, l1a_bxgap)
+            lpgbt_vfat_reg_scan(args.system, reg, vfat_list, channel_list, lower, upper, step, cal_mode, charge, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()

@@ -55,7 +55,7 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-def lpgbt_vfat_bert(system, vfat_list, nl1a, runtime, l1a_bxgap, calpulse):
+def lpgbt_vfat_bert(system, vfat_list, cal_mode, cal_dac, nl1a, runtime, l1a_bxgap, calpulse):
     file_out = open("vfat_daq_test_output.txt", "w+")
 
     if nl1a!=0:
@@ -99,6 +99,18 @@ def lpgbt_vfat_bert(system, vfat_list, nl1a, runtime, l1a_bxgap, calpulse):
             enableVfatchannel(vfat-6*oh_select, oh_select, 0, 0, 1) # enable calpulsing on channel 0 for this VFAT
         else:
             configureVfat(1, vfat-6*oh_select, oh_select, 1) # configure with 0 threshold to get noise
+        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_LATENCY"% (oh_select, vfat-6*oh_select)), 19)
+        if cal_mode == "voltage":
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 1)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 200)
+        elif cal_mode == "current":
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 2)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 0)
+        else:
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 0)
+            write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 0)
+
+        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DAC"% (oh_select, vfat-6*oh_select)), cal_dac)
 
         link_good_node[vfat] = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.LINK_GOOD" % (oh_select, vfat-6*oh_select))
         sync_error_node[vfat] = get_rwreg_node("GEM_AMC.OH_LINKS.OH%d.VFAT%d.SYNC_ERR_CNT" % (oh_select, vfat-6*oh_select))
@@ -119,7 +131,7 @@ def lpgbt_vfat_bert(system, vfat_list, nl1a, runtime, l1a_bxgap, calpulse):
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_COUNT"), nl1a)
 
     if calpulse:
-        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 50) # 50 BX between Calpulse and L1A
+        write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 25)
     else:
         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_CALPULSE_TO_L1A_GAP"), 0) # Disable Calpulsing
 
@@ -310,6 +322,8 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--vfats", action="store", dest="vfats", nargs='+', help="vfats = list of VFATs (0-11)")
     #parser.add_argument("-o", "--ohid", action="store", dest="ohid", help="ohid = 0-7 (only needed for backend)")
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
+    parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "voltage", help="cal_mode = voltage or current (default = voltage)")
+    parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", default = "100", help="cal_dac = Value of CAL_DAC register (default = 100)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-t", "--time", action="store", dest="time", help="time = time (in minutes) to perform the DAQ test")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
@@ -345,6 +359,16 @@ if __name__ == '__main__':
             print (Colors.YELLOW + "Invalid VFAT number, only allowed 0-11" + Colors.ENDC)
             sys.exit()
         vfat_list.append(v_int)
+
+    cal_mode = args.cal_mode
+    if cal_mode not in ["voltage", "current"]:
+        print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
+        sys.exit()
+
+    cal_dac = int(args.cal_dac)
+    if cal_dac > 255 or cal_dac < 0:
+        print (Colors.YELLOW + "CAL_DAC must be between 0 and 255" + Colors.ENDC)
+        sys.exit()
 
     nl1a = 0
     if args.nl1a is not None:
@@ -392,7 +416,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_bert(args.system, vfat_list, nl1a, runtime, l1a_bxgap, args.calpulse)
+        lpgbt_vfat_bert(args.system, vfat_list, cal_mode, cal_dac, nl1a, runtime, l1a_bxgap, args.calpulse)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
