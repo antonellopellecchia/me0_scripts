@@ -204,7 +204,6 @@ def lpgbt_vfat_scurve(system, vfat_list, channel_list, set_cal_mode, parallel, t
                 daq_data[vfat][channel][charge]["fired"] = read_backend_reg(daq_monitor_fire_count_node[vfat])
             # End of VFAT loop
         # End of charge loop
-        print ("")
 
         if not parallel:
             for vfat in vfat_list:
