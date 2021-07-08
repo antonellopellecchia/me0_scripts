@@ -56,7 +56,7 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-def lpgbt_vfat_scurve(system, vfat_list, channel_list, set_cal_mode, threshold, step, nl1a, l1a_bxgap):
+def lpgbt_vfat_scurve(system, vfat_list, channel_list, set_cal_mode, parallel, threshold, step, nl1a, l1a_bxgap):
     if not os.path.exists("daq_scurve_results"):
         os.makedirs("daq_scurve_results")
     now = str(datetime.datetime.now())[:16]
@@ -155,14 +155,22 @@ def lpgbt_vfat_scurve(system, vfat_list, channel_list, set_cal_mode, threshold, 
     print (vfat_list)
     print ("")
 
+    if parallel:
+        print ("Injecting charge in all channels in parallel\n")
+        for vfat in vfat_list:
+            for channel in range(0, 128):
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+    else:
+        print ("Injecting charge in channels one at a time\n")
+
     # Looping over channels
     for channel in channel_list:
         print ("Channel: %d"%channel)
-        for vfat in vfat_list:
-            lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+        if not parallel:
+            for vfat in vfat_list:
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
         write_backend_reg(daq_monitor_select_node, channel)
-        
+
         # Looping over charge
         for c in range(0,256,step):
             if cal_mode[vfat] == 1:
@@ -170,13 +178,13 @@ def lpgbt_vfat_scurve(system, vfat_list, channel_list, set_cal_mode, threshold, 
             else:
                 charge = c
             #print ("    Injected Charge: %d"%charge)
-       	    for vfat in vfat_list:
+            for vfat in vfat_list:
                 write_backend_reg(dac_node[vfat], c)
-           
+
             write_backend_reg(daq_monitor_reset_node, 1)
             write_backend_reg(daq_monitor_enable_node, 1)
 
-		    # Start the cyclic generator
+            # Start the cyclic generator
             l1a_counter_initial = read_backend_reg(l1a_node)
             calpulse_counter_initial = read_backend_reg(calpulse_node)
             write_backend_reg(ttc_enable_node, 1)
@@ -196,12 +204,12 @@ def lpgbt_vfat_scurve(system, vfat_list, channel_list, set_cal_mode, threshold, 
                 daq_data[vfat][channel][charge]["fired"] = read_backend_reg(daq_monitor_fire_count_node[vfat])
             # End of VFAT loop
         # End of charge loop
-        
-        for vfat in vfat_list:
-            lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
-            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask channel and disable calpulsing
+        print ("")
+
+        if not parallel:
+            for vfat in vfat_list:
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask channel and disable calpulsing
     # End of channel loop
-            
     print ("")
 
     # Disable channels on VFATs
@@ -233,6 +241,7 @@ if __name__ == '__main__':
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
     parser.add_argument("-c", "--channels", action="store", nargs='+', dest="channels", help="channels = list of channels (default: 0-127)")
     parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "voltage", help="cal_mode = voltage or current (default = voltage)")
+    parser.add_argument("-p", "--parallel", action="store_true", dest="parallel", help="parallel = inject calpulse in all channels simultaneously (only possible in voltage mode, not a preferred option)")
     parser.add_argument("-x", "--threshold", action="store", dest="threshold", help="threshold = the CFG_THR_ARM_DAC value (default=configured value of VFAT)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
@@ -295,6 +304,10 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
         sys.exit()
 
+    if args.parallel and cal_mode != "voltage":
+        print (Colors.YELLOW + "CAL_MODE must be voltage for parallel injection" + Colors.ENDC)
+        sys.exit()
+
     threshold = -9999
     if args.threshold is not None:
         threshold = int(args.threshold)
@@ -340,7 +353,7 @@ if __name__ == '__main__':
     
     # Running Phase Scan
     try:
-        lpgbt_vfat_scurve(args.system, vfat_list, channel_list, cal_mode, threshold, step, nl1a, l1a_bxgap)
+        lpgbt_vfat_scurve(args.system, vfat_list, channel_list, cal_mode, args.parallel, threshold, step, nl1a, l1a_bxgap)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
