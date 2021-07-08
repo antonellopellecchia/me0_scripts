@@ -64,7 +64,7 @@ with open(latest_file) as input_file:
     s_bit_channel_mapping = json.load(input_file)
 
 
-def lpgbt_vfat_sbit(system, vfat_list, channel_list, cal_mode, threshold, step, nl1a, l1a_bxgap):
+def lpgbt_vfat_sbit(system, vfat_list, channel_list, set_cal_mode, threshold, step, nl1a, l1a_bxgap):
     if not os.path.exists("sbit_scurve_results"):
         os.makedirs("sbit_scurve_results")
     now = str(datetime.datetime.now())[:16]
@@ -89,10 +89,10 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, cal_mode, threshold, step, 
 
         print("Configuring VFAT %d" % (vfat))
         configureVfat(1, vfat-6*oh_select, oh_select, 0)
-        if cal_mode == "voltage":
+        if set_cal_mode == "voltage":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 1)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 200)
-        elif cal_mode == "current":
+        elif set_cal_mode == "current":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 2)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 0)
         else:

@@ -55,7 +55,7 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-def lpgbt_vfat_bert(system, vfat_list, cal_mode, cal_dac, nl1a, runtime, l1a_bxgap, calpulse):
+def lpgbt_vfat_bert(system, vfat_list, set_cal_mode, cal_dac, nl1a, runtime, l1a_bxgap, calpulse):
     file_out = open("vfat_daq_test_output.txt", "w+")
 
     if nl1a!=0:
@@ -99,11 +99,11 @@ def lpgbt_vfat_bert(system, vfat_list, cal_mode, cal_dac, nl1a, runtime, l1a_bxg
             enableVfatchannel(vfat-6*oh_select, oh_select, 0, 0, 1) # enable calpulsing on channel 0 for this VFAT
         else:
             configureVfat(1, vfat-6*oh_select, oh_select, 1) # configure with 0 threshold to get noise
-        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_LATENCY"% (oh_select, vfat-6*oh_select)), 19)
-        if cal_mode == "voltage":
+        write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_LATENCY"% (oh_select, vfat-6*oh_select)), 18)
+        if set_cal_mode == "voltage":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 1)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 200)
-        elif cal_mode == "current":
+        elif set_cal_mode == "current":
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE"% (oh_select, vfat-6*oh_select)), 2)
             write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat-6*oh_select)), 0)
         else:
