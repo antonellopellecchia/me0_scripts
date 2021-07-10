@@ -224,7 +224,7 @@ if __name__ == '__main__':
     parser.add_argument("-z", "--noise", action="store_true", dest="noise", help="if you want noise map instead of hit map")
     parser.add_argument("-l", "--low_thresh", action="store_true", dest="low_thresh", help="if you want 0 thhreshold for VFATs to get noise")
     parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "voltage", help="cal_mode = voltage or current (default = voltage)")
-    parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", default = "100", help="cal_dac = Value of CAL_DAC register (default = 100)")
+    parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", help="cal_dac = Value of CAL_DAC register (default = 50 for voltage pulse mode and 150 for current pulse mode)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
     parser.add_argument("-a", "--addr", action="store_true", dest="addr", help="if plugin card addressing needs should be enabled")
@@ -281,10 +281,17 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
         sys.exit()
         
-    cal_dac = int(args.cal_dac)
-    if cal_dac > 255 or cal_dac < 0:
-        print (Colors.YELLOW + "CAL_DAC must be between 0 and 255" + Colors.ENDC)
-        sys.exit()
+    cal_dac = -9999
+    if args.cal_dac is None:
+        if cal_mode == "voltage":
+            cal_dac = 50
+        elif cal_mode == "current":
+            cal_dac = 150
+    else:
+        cal_dac = int(args.cal_dac)
+        if cal_dac > 255 or cal_dac < 0:
+            print (Colors.YELLOW + "CAL_DAC must be between 0 and 255" + Colors.ENDC)
+            sys.exit()
 
     nl1a = 0
     if args.nl1a is not None:

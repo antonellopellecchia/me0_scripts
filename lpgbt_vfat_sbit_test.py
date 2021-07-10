@@ -121,6 +121,15 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
     for i in range(128):
         enableVfatchannel(vfat-6*oh_select, oh_select, i, 1, 0) # mask all channels and disable calpulsing
 
+    if parallel:
+        for elink in elink_list:
+            for channel in channel_list[elink]:
+                print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
+                file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
+            print("")
+            file_out.write("\n")
+
     for elink in elink_list:
         print ("Channel List in ELINK# %02d:" %(elink))
         file_out.write("Channel List in ELINK# %02d:\n" %(elink))
@@ -241,14 +250,15 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
             l1a_counter_list[elink][channel] = l1a_counter
             calpulse_counter_list[elink][channel] = calpulse_counter
 
-        if parallel:
+        print ("")
+        file_out.write("\n")
+
+    if parallel:
+        for elink in elink_list:
             for channel in channel_list[elink]:
                 print("Disabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
                 file_out.write("Disabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
-
-        print ("")
-        file_out.write("\n")
 
     # Unconfigure the pulsing VFAT
     print("Unconfiguring VFAT %02d" % (vfat))
@@ -331,7 +341,7 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--channels", action="store", dest="channels", nargs='+', help="channels = list of channels for chosen VFAT and ELINK (list allowed only for 1 elink, by default all channels used for the elinks)")
     parser.add_argument("-x", "--sbits", action="store", dest="sbits", nargs='+', help="sbit = list of sbits to read for chosen VFAT and ELINK (list allowed only for 1 elink, by default all s-bits used for the elinks)")
     parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "current", help="cal_mode = voltage or current (default = current)")
-    parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", default = "100", help="cal_dac = Value of CAL_DAC register (default = 100)")
+    parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", help="cal_dac = Value of CAL_DAC register (default = 50 for voltage pulse mode and 150 for current pulse mode)")
     parser.add_argument("-p", "--parallel", action="store_true", dest="parallel", help="parallel = inject calpulse in all channels simultaneously (only possible in voltage mode, not a preferred option, only for specific tests)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-t", "--time", action="store", dest="time", help="time = time for which to run the S-bit testing (in minutes)")
@@ -445,10 +455,17 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "CAL_MODE must be voltage for parallel injection" + Colors.ENDC)
         sys.exit()
 
-    cal_dac = int(args.cal_dac)
-    if cal_dac > 255 or cal_dac < 0:
-        print (Colors.YELLOW + "CAL_DAC must be between 0 and 255" + Colors.ENDC)
-        sys.exit()
+    cal_dac = -9999
+    if args.cal_dac is None:
+        if cal_mode == "voltage":
+            cal_dac = 50
+        elif cal_mode == "current":
+            cal_dac = 150
+    else:
+        cal_dac = int(args.cal_dac)
+        if cal_dac > 255 or cal_dac < 0:
+            print (Colors.YELLOW + "CAL_DAC must be between 0 and 255" + Colors.ENDC)
+            sys.exit()
 
     nl1a = 0
     if args.nl1a is not None:
