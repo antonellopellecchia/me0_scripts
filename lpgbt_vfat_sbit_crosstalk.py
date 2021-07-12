@@ -93,6 +93,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, set_cal_mode, cal_dac, nl1a, l
     ttc_reset_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET")
     ttc_cyclic_start_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START")
     cyclic_running_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_RUNNING")
+    calpulse_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.CALPULSE")
     
     # Nodes for Sbit counters
     vfat_sbit_select_node = get_rwreg_node("GEM_AMC.TRIGGER.TEST_SEL_VFAT_SBIT_ME0") # VFAT for reading S-bits
@@ -135,6 +136,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat_list, set_cal_mode, cal_dac, nl1a, l
                     cyclic_running = read_backend_reg(cyclic_running_node)
                 # Stop the cyclic generator
                 write_backend_reg(ttc_reset_node, 1)
+                calpulse_counter = read_backend_reg(calpulse_node)
 
                 sbit_data[vfat][channel_inj][channel_read]["events"] = calpulse_counter
                 sbit_data[vfat][channel_inj][channel_read]["fired"] = read_backend_reg(channel_sbit_counter_node)
