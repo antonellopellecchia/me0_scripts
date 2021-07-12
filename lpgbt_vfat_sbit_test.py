@@ -77,17 +77,16 @@ def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 0)
     write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DAC"% (oh_select, vfat)), cal_dac)
 
-    for i in range(128):
-        enableVfatchannel(vfat, oh_select, i, 1, 0) # mask all channels and disable calpulsing
-
     if parallel:
-        for elink in elink_list:
-            for channel in channel_list[elink]:
-                print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
-                file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
-                enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
-            print("")
-            file_out.write("\n")
+        print("Enabling pulsing on all channels in VFAT# %02d" % (vfat))
+        file_out.write("Enabling pulsing on all channels in VFAT# %02d\n" % (vfat))
+        print("")
+        file_out.write("\n")
+    for channel in range(0,128):
+        if parallel:
+            enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
+        else:
+            enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
 
     for elink in elink_list:
         print ("Channel List in ELINK# %02d:" %(elink))
@@ -206,11 +205,12 @@ def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list
         file_out.write("\n")
 
     if parallel:
-        for elink in elink_list:
-            for channel in channel_list[elink]:
-                print("Disabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
-                file_out.write("Disabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
-                enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
+        print("Disabling pulsing on all channels in VFAT# %02d" % (vfat))
+        file_out.write("Enabling pulsing on all channels in VFAT# %02d\n" % (vfat))
+        print("")
+        file_out.write("\n")
+        for channel in range(0,128):
+            enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
 
     # Unconfigure the pulsing VFAT
     print("Unconfiguring VFAT %02d" % (vfat))
