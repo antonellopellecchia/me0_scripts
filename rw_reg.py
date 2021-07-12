@@ -259,7 +259,7 @@ def writeReg(reg, value):
         final_value = (shifted_value & reg.mask) | (initial_value & ~reg.mask)
     else: final_value = value
     output = wReg(parseInt(address),parseInt(final_value))
-    if output < 0 or output == 0xffffffffL:
+    if output < 0 or output == 0xffffffff:
         return 'Bus Error'
     else:
         return str('{0:#010x}'.format(final_value)).rstrip('L')+'('+str(value)+')\twritten to '+reg.name
