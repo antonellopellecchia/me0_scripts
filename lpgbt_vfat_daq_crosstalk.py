@@ -187,7 +187,7 @@ def lpgbt_vfat_crosstalk(system, vfat_list, set_cal_mode, cal_dac, nl1a, l1a_bxg
         lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
         enable_channel = 0
         print("Unconfiguring VFAT %d" % (vfat))
-        for channel in channel_list:
+        for channel in range(0,128):
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat-6*oh_select, oh_select, 0)
 

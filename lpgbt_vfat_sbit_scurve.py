@@ -161,10 +161,15 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, set_cal_mode, parallel, thr
     print (vfat_list)
     print ("")
 
-    if parallel:
+    if parallel == "all":
         print ("Injecting charge in all channels in parallel\n")
         for vfat in vfat_list:
             for channel in range(0, 128):
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+    elif parallel == "select":
+        print ("Injecting charge in selected channels in parallel\n")
+        for vfat in vfat_list:
+            for channel in channel_list:
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
     else:
         print ("Injecting charge in channels one at a time\n")
@@ -175,7 +180,7 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, set_cal_mode, parallel, thr
         elink = channel/16
         for vfat in vfat_list:
             lpgbt, oh_select, gbt_select, rx_elink = vfat_to_oh_gbt_elink(vfat)
-            if not parallel:
+            if parallel is None:
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
             write_backend_reg(vfat_sbit_select_node, vfat-6*oh_select)
             if s_bit_channel_mapping[str(vfat)][str(elink)][str(channel)] == -9999:
@@ -207,7 +212,7 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, set_cal_mode, parallel, thr
                 sbit_data[vfat][channel][charge]["events"] = calpulse_counter
                 sbit_data[vfat][channel][charge]["fired"] = read_backend_reg(channel_sbit_counter_node)
             # End of charge loop
-            if not parallel:
+            if parallel is None:
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask channel and disable calpulsing
         # End of VFAT loop
     # End of channel loop
@@ -217,7 +222,7 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, set_cal_mode, parallel, thr
     for vfat in vfat_list:
         lpgbt, oh_select, gbt_select, rx_elink = vfat_to_oh_gbt_elink(vfat)
         print("Unconfiguring VFAT %d" % (vfat))
-        for channel in channel_list:
+        for channel in range(0,128):
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat-6*oh_select, oh_select, 0)
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 1)
@@ -245,7 +250,7 @@ if __name__ == '__main__':
     #parser.add_argument("-g", "--gbtid", action="store", dest="gbtid", help="gbtid = 0, 1 (only needed for backend)")
     parser.add_argument("-c", "--channels", action="store", nargs='+', dest="channels", help="channels = list of channels (default: 0-127)")
     parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "current", help="cal_mode = voltage or current (default = current)")
-    parser.add_argument("-p", "--parallel", action="store_true", dest="parallel", help="parallel = inject calpulse in all channels simultaneously (only possible in voltage mode, not a preferred option)")
+    parser.add_argument("-p", "--parallel", action="store", dest="parallel", help="parallel = all (inject calpulse in all channels) or select (inject calpulse in selected channels) simultaneously (only possible in voltage mode, not a preferred option)")
     parser.add_argument("-x", "--threshold", action="store", dest="threshold", help="threshold = the CFG_THR_ARM_DAC value (default=configured value of VFAT)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
@@ -297,9 +302,13 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
         sys.exit()
 
-    if args.parallel and cal_mode != "voltage":
-        print (Colors.YELLOW + "CAL_MODE must be voltage for parallel injection" + Colors.ENDC)
-        sys.exit()
+    if args.parallel is not None:
+        if args.parallel not in ["all", "select"]:
+            print (Colors.YELLOW + "Parallel mode can be either all or select" + Colors.ENDC)
+            sys.exit()
+        if cal_mode != "voltage":
+            print (Colors.YELLOW + "CAL_MODE must be voltage for parallel injection" + Colors.ENDC)
+            sys.exit()
 
     threshold = -9999
     if args.threshold is not None:

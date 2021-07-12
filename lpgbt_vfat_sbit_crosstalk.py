@@ -202,7 +202,7 @@ def lpgbt_vfat_sbit(system, vfat_list, set_cal_mode, cal_dac, nl1a, l1a_bxgap):
     for vfat in vfat_list:
         lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
         print("Unconfiguring VFAT %d" % (vfat))
-        for channel in channel_list:
+        for channel in range(0,128):
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat-6*oh_select, oh_select, 0)
     write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 0)

@@ -195,7 +195,7 @@ def lpgbt_vfat_hitmap(system, vfat_list, noise, low_thresh, set_cal_mode, cal_da
         lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
         enable_channel = 0
         print("Unconfiguring VFAT %d" % (vfat))
-        for channel in channel_list:
+        for channel in range(0,128):
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat-6*oh_select, oh_select, 0)
 
