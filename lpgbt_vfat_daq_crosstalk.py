@@ -141,9 +141,7 @@ def lpgbt_vfat_crosstalk(system, vfat_list, set_cal_mode, cal_dac, nl1a, l1a_bxg
     ttc_reset_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET")
     ttc_cyclic_start_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START")
     cyclic_running_node = get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_RUNNING")
-    l1a_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.L1A")
-    calpulse_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.CALPULSE")
-
+    
     print ("\nRunning Crosstalk Scan for %.2e L1A cycles for VFATs:" % (nl1a))
     print (vfat_list)
     print ("")
@@ -162,8 +160,6 @@ def lpgbt_vfat_crosstalk(system, vfat_list, set_cal_mode, cal_dac, nl1a, l1a_bxg
             write_backend_reg(daq_monitor_enable_node, 1)
 
             # Start the cyclic generator
-            l1a_counter_initial = read_backend_reg(l1a_node)
-            calpulse_counter_initial = read_backend_reg(calpulse_node)
             write_backend_reg(ttc_enable_node, 1)
             write_backend_reg(ttc_cyclic_start_node, 1)
             cyclic_running = 1
@@ -171,8 +167,6 @@ def lpgbt_vfat_crosstalk(system, vfat_list, set_cal_mode, cal_dac, nl1a, l1a_bxg
                 cyclic_running = read_backend_reg(cyclic_running_node)
             # Stop the cyclic generator
             write_backend_reg(ttc_reset_node, 1)
-            l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
-            calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
             write_backend_reg(daq_monitor_enable_node, 0)
 
             # Looping over VFATs

@@ -173,11 +173,6 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
             write_backend_reg(elink_sbit_select_node, elink) # Select elink for S-bit counter
             write_backend_reg(channel_sbit_select_node, sbit_read) # Select S-bit for S-bit counter
 
-            elink_sbit_counter_initial = read_backend_reg(elink_sbit_counter_node)
-            channel_sbit_counter_initial = read_backend_reg(channel_sbit_counter_node)
-            l1a_counter_initial = read_backend_reg(l1a_node)
-            calpulse_counter_initial = read_backend_reg(calpulse_node)
-
             # Configure TTC generator
             write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
             write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), l1a_bxgap)
@@ -193,6 +188,8 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
             write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START"), 1)
 
             cyclic_running = read_backend_reg(cyclic_running_node)
+            nl1a_reg_cycles = 0
+            l1a_counter = 0
             t0 = time()
             time_prev = t0
             if nl1a != 0:
@@ -200,12 +197,14 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
                     cyclic_running = read_backend_reg(cyclic_running_node)
                     time_passed = (time()-time_prev)/60.0
                     if time_passed >= 1:
-                        elink_sbit_counter = read_backend_reg(elink_sbit_counter_node) - elink_sbit_counter_initial
-                        channel_sbit_counter = read_backend_reg(channel_sbit_counter_node) - channel_sbit_counter_initial
-                        l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
-                        calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
+                        elink_sbit_counter = read_backend_reg(elink_sbit_counter_node)
+                        channel_sbit_counter = read_backend_reg(channel_sbit_counter_node)
                         expected_l1a = int(l1a_rate * (time()-t0) * efficiency)
-                        nl1a_reg_cycles = int(expected_l1a/(2**32))
+                        if (read_backend_reg(l1a_node) < l1a_counter):
+                            #nl1a_reg_cycles = int(expected_l1a/(2**32))
+                            nl1a_reg_cycles += 1
+                        l1a_counter = read_backend_reg(l1a_node)
+                        calpulse_counter = read_backend_reg(calpulse_node)
                         real_l1a_counter = nl1a_reg_cycles*(2**32) + l1a_counter
                         real_calpulse_counter = nl1a_reg_cycles*(2**32) + calpulse_counter
                         print ("Time passed: %.2f minutes, L1A counter = %.2e,  Calpulse counter = %.2e,  S-bit counter for Elink %02d = %.2e,  S-bit counter for Channel %02d = %.2e" % ((time()-t0)/60.0, real_l1a_counter, real_calpulse_counter, elink, elink_sbit_counter, channel, channel_sbit_counter))
@@ -215,12 +214,14 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
                 while ((time()-t0)/60.0) < runtime:
                     time_passed = (time()-time_prev)/60.0
                     if time_passed >= 1:
-                        elink_sbit_counter = read_backend_reg(elink_sbit_counter_node) - elink_sbit_counter_initial
-                        channel_sbit_counter = read_backend_reg(channel_sbit_counter_node) - channel_sbit_counter_initial
-                        l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
-                        calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
+                        elink_sbit_counter = read_backend_reg(elink_sbit_counter_node)
+                        channel_sbit_counter = read_backend_reg(channel_sbit_counter_node)
                         expected_l1a = int(l1a_rate * (time()-t0) * efficiency)
-                        nl1a_reg_cycles = int(expected_l1a/(2**32))
+                        if (read_backend_reg(l1a_node) < l1a_counter):
+                            #nl1a_reg_cycles = int(expected_l1a/(2**32))
+                            nl1a_reg_cycles += 1
+                        l1a_counter = read_backend_reg(l1a_node)
+                        calpulse_counter = read_backend_reg(calpulse_node)
                         real_l1a_counter = nl1a_reg_cycles*(2**32) + l1a_counter
                         real_calpulse_counter = nl1a_reg_cycles*(2**32) + calpulse_counter
                         print ("Time passed: %.2f minutes, L1A counter = %.2e,  Calpulse counter = %.2e,  S-bit counter for Elink %02d = %.2e,  S-bit counter for Channel %02d = %.2e" % ((time()-t0)/60.0, real_l1a_counter, real_calpulse_counter, elink, elink_sbit_counter, channel, channel_sbit_counter))
@@ -241,10 +242,10 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
             print("")
             file_out.write("\n")
 
-            elink_sbit_counter = read_backend_reg(elink_sbit_counter_node) - elink_sbit_counter_initial
-            channel_sbit_counter = read_backend_reg(channel_sbit_counter_node) - channel_sbit_counter_initial
-            l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
-            calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
+            elink_sbit_counter = read_backend_reg(elink_sbit_counter_node)
+            channel_sbit_counter = read_backend_reg(channel_sbit_counter_node)
+            l1a_counter = read_backend_reg(l1a_node)
+            calpulse_counter = read_backend_reg(calpulse_node)
             elink_sbit_counter_list[elink][channel] = elink_sbit_counter
             channel_sbit_counter_list[elink][channel] = channel_sbit_counter
             l1a_counter_list[elink][channel] = l1a_counter

@@ -163,7 +163,6 @@ def lpgbt_vfat_sbit(system, vfat_list, nl1a, l1a_bxgap, best_phase):
                     # Enabling the pulsing channel
                     enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
 
-                    channel_sbit_counter_initial = {}
                     channel_sbit_counter_final = {}
                     sbit_channel_match = 0
                     s_bit_channel_mapping[vfat][elink][channel] = -9999
@@ -175,12 +174,7 @@ def lpgbt_vfat_sbit(system, vfat_list, nl1a, l1a_bxgap, best_phase):
                         write_backend_reg(reset_sbit_counter_node, 1)
 
                         write_backend_reg(channel_sbit_select_node, sbit) # Select S-bit for S-bit counter
-                        channel_sbit_counter_initial[sbit] = read_backend_reg(channel_sbit_counter_node)
                         s_bit_matches[sbit] = 0
-
-                        elink_sbit_counter_initial = read_backend_reg(elink_sbit_counter_node)
-                        l1a_counter_initial = read_backend_reg(l1a_node)
-                        calpulse_counter_initial = read_backend_reg(calpulse_node)
 
                         # Start the cyclic generator
                         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_START"), 1)
@@ -192,16 +186,16 @@ def lpgbt_vfat_sbit(system, vfat_list, nl1a, l1a_bxgap, best_phase):
                         write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET"), 1)
 
                         elink_sbit_counter_final = read_backend_reg(elink_sbit_counter_node)
-                        l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
-                        calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
+                        l1a_counter = read_backend_reg(l1a_node)
+                        calpulse_counter = read_backend_reg(calpulse_node)
 
-                        if (elink_sbit_counter_final - elink_sbit_counter_initial) == 0:
+                        if elink_sbit_counter_final == 0:
                             # Elink did not register a hit
                             s_bit_channel_mapping[vfat][elink][channel] = -9999
                             break
                         channel_sbit_counter_final[sbit] = read_backend_reg(channel_sbit_counter_node)
 
-                        if (channel_sbit_counter_final[sbit] - channel_sbit_counter_initial[sbit]) > 0:
+                        if channel_sbit_counter_final[sbit] > 0:
                             if sbit_channel_match == 1:
                                 # Multiple S-bits registered hits for calpulse on this channel
                                 s_bit_channel_mapping[vfat][elink][channel] = -9999

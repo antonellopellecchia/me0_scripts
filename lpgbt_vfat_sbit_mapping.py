@@ -106,7 +106,6 @@ def lpgbt_vfat_sbit(system, vfat_list, nl1a, l1a_bxgap):
                 # Enabling the pulsing channel
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
 
-                channel_sbit_counter_initial = {}
                 channel_sbit_counter_final = {}
                 sbit_channel_match = 0
                 s_bit_channel_mapping[vfat][elink][channel] = -9999
@@ -118,12 +117,7 @@ def lpgbt_vfat_sbit(system, vfat_list, nl1a, l1a_bxgap):
                     write_backend_reg(reset_sbit_counter_node, 1)
 
                     write_backend_reg(channel_sbit_select_node, sbit) # Select S-bit for S-bit counter
-                    channel_sbit_counter_initial[sbit] = read_backend_reg(channel_sbit_counter_node)
                     s_bit_matches[sbit] = 0
-
-                    elink_sbit_counter_initial = read_backend_reg(elink_sbit_counter_node)
-                    l1a_counter_initial = read_backend_reg(l1a_node)
-                    calpulse_counter_initial = read_backend_reg(calpulse_node)
 
                     # Configure TTC generator
                     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
@@ -141,19 +135,19 @@ def lpgbt_vfat_sbit(system, vfat_list, nl1a, l1a_bxgap):
                     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET"), 1)
 
                     elink_sbit_counter_final = read_backend_reg(elink_sbit_counter_node)
-                    l1a_counter = read_backend_reg(l1a_node) - l1a_counter_initial
-                    calpulse_counter = read_backend_reg(calpulse_node) - calpulse_counter_initial
+                    l1a_counter = read_backend_reg(l1a_node)
+                    calpulse_counter = read_backend_reg(calpulse_node)
 
                     if system!="dryrun" and l1a_counter != nl1a:
                         print (Colors.RED + "ERROR: Number of L1A's incorrect" + Colors.ENDC)
                         rw_terminate()
-                    if system!="dryrun" and (elink_sbit_counter_final - elink_sbit_counter_initial) == 0:
+                    if system!="dryrun" and elink_sbit_counter_final == 0:
                         print (Colors.YELLOW + "WARNING: Elink %02d did not register any S-bit for calpulse on channel %02d"%(elink, channel) + Colors.ENDC)
                         s_bit_channel_mapping[vfat][elink][channel] = -9999
                         break
                     channel_sbit_counter_final[sbit] = read_backend_reg(channel_sbit_counter_node)
 
-                    if (channel_sbit_counter_final[sbit] - channel_sbit_counter_initial[sbit]) > 0:
+                    if channel_sbit_counter_final[sbit] > 0:
                         if sbit_channel_match == 1:
                             print (Colors.YELLOW + "WARNING: Multiple S-bits registered hits for calpulse on channel %02d"%(channel) + Colors.ENDC)
                             s_bit_channel_mapping[vfat][elink][channel] = -9999
