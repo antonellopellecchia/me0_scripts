@@ -126,8 +126,9 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
     elif parallel == "select":
         print ("Injecting charge in selected channels in parallel\n")
         file_out.write("Injecting charge in selected channels in parallel\n\n")
-        for channel in channel_list:
-            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+        for elink in elink_list:
+            for channel in channel_list:
+                enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
     else:
         for channel in range(0, 128):
             enableVfatchannel(vfat-6*oh_select, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
@@ -261,8 +262,9 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
     file_out.write("Disabling pulsing on all channels in VFAT# %02d\n" % (vfat))
     print("")
     file_out.write("\n")
-    for channel in range(0,128):
-        enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
+    for elink in elink_list:
+        for channel in range(0,128):
+            enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
     print("Unconfiguring VFAT %02d" % (vfat))
     file_out.write("Unconfiguring VFAT %02d\n" % (vfat))
     configureVfat(0, vfat-6*oh_select, oh_select, 0)
