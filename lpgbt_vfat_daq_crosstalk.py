@@ -113,7 +113,7 @@ def lpgbt_vfat_crosstalk(system, vfat_list, set_cal_mode, cal_dac, nl1a, l1a_bxg
                 daq_data[vfat][channel_inj][channel_read]["fired"] = -9999
 
     # Configure TTC generator
-    write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET"), 1)
+    #write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.SINGLE_HARD_RESET"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.RESET"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.ENABLE"), 1)
     write_backend_reg(get_rwreg_node("GEM_AMC.TTC.GENERATOR.CYCLIC_L1A_GAP"), l1a_bxgap)
