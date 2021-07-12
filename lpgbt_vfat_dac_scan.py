@@ -70,6 +70,8 @@ def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, st
 
         dac_node[vfat] = {}
         for dac in dac_list:
+            if dac in ["CFG_CAL_DAC_I", "CFG_CAL_DAC_V"]:
+                dac = "CFG_CAL_DAC"
             dac_node[vfat][dac] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.%s" % (oh_select, vfat, dac))
         vfat_cfg_run_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.CFG_RUN" % (oh_select, vfat))
         vfat_cfg_calmode_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_MODE" % (oh_select, vfat))
@@ -97,8 +99,8 @@ def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, st
             # Setup DAC Monitor
             write_backend_reg(adc_monitor_select_node[vfat], REGISTER_DAC_MONITOR_MAP[dac])
             if dac=="CFG_CAL_DAC_I":
-                write_backend_reg(vfat_cfg_calmode_node[vfat], 0x0)
-            elif dac=="CFG_CAL_DAC_V":
+                write_backend_reg(vfat_cfg_calmode_node[vfat], 0x2)
+            else:
                 write_backend_reg(vfat_cfg_calmode_node[vfat], 0x1)
 
             # Set VFAT to Run Mode
