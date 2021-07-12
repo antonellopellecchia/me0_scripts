@@ -127,7 +127,7 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
         print ("Injecting charge in selected channels in parallel\n")
         file_out.write("Injecting charge in selected channels in parallel\n\n")
         for elink in elink_list:
-            for channel in channel_list:
+            for channel in channel_list[elink]:
                 enableVfatchannel(vfat-6*oh_select, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
     else:
         for channel in range(0, 128):
