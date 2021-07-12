@@ -77,15 +77,18 @@ def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list
         write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DUR"% (oh_select, vfat)), 0)
     write_backend_reg(get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%i.CFG_CAL_DAC"% (oh_select, vfat)), cal_dac)
 
-    if parallel:
-        print("Enabling pulsing on all channels in VFAT# %02d" % (vfat))
-        file_out.write("Enabling pulsing on all channels in VFAT# %02d\n" % (vfat))
-        print("")
-        file_out.write("\n")
-    for channel in range(0,128):
-        if parallel:
-            enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
-        else:
+    if parallel == "all":
+        print ("Injecting charge in all channels in parallel\n")
+        file_out.write("Injecting charge in all channels in parallel\n\n")
+        for channel in range(0, 128):
+            enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+    elif parallel == "select":
+        print ("Injecting charge in selected channels in parallel\n")
+        file_out.write("Injecting charge in selected channels in parallel\n\n")
+        for channel in channel_list:
+            enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+    else:
+        for channel in range(0, 128):
             enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
 
     for elink in elink_list:
@@ -115,7 +118,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list
             write_backend_reg(reset_sbit_counter_node, 1)
 
             # Enabling the pulsing channel
-            if not parallel:
+            if parallel is None:
                 print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
                 file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
                 enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask this channel and enable calpulsing
@@ -185,7 +188,7 @@ def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list
             file_out.write("ELINK# %02d, Channel %02d, S-bit %02d: L1A and Calpulsing cycle completed in %.2f seconds (%.2f minutes)\n"%(elink, channel, sbit_read, total_time, total_time/60.0))
 
             # Disabling the pulsing channels
-            if not parallel:
+            if parallel is None:
                 print("Disabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
                 file_out.write("Disabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
                 enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
@@ -204,15 +207,13 @@ def lpgbt_vfat_sbit(system, oh_select, vfat, elink_list, channel_list, sbit_list
         print ("")
         file_out.write("\n")
 
-    if parallel:
-        print("Disabling pulsing on all channels in VFAT# %02d" % (vfat))
-        file_out.write("Enabling pulsing on all channels in VFAT# %02d\n" % (vfat))
-        print("")
-        file_out.write("\n")
-        for channel in range(0,128):
-            enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask this channel and disable calpulsing
-
     # Unconfigure the pulsing VFAT
+    print("Disabling pulsing on all channels in VFAT# %02d" % (vfat))
+    file_out.write("Disabling pulsing on all channels in VFAT# %02d\n" % (vfat))
+    print("")
+    file_out.write("\n")
+    for channel in range(0,128):
+        enableVfatchannel(vfat, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
     print("Unconfiguring VFAT %02d" % (vfat))
     file_out.write("Unconfiguring VFAT %02d\n" % (vfat))
     configureVfat(0, vfat, oh_select, 0)
@@ -294,7 +295,7 @@ if __name__ == '__main__':
     parser.add_argument("-x", "--sbits", action="store", dest="sbits", nargs='+', help="sbit = list of sbits to read for chosen VFAT and ELINK (list allowed only for 1 elink, by default all s-bits used for the elinks)")
     parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "current", help="cal_mode = voltage or current (default = current)")
     parser.add_argument("-d", "--cal_dac", action="store", dest="cal_dac", help="cal_dac = Value of CAL_DAC register (default = 50 for voltage pulse mode and 150 for current pulse mode)")
-    parser.add_argument("-p", "--parallel", action="store_true", dest="parallel", help="parallel = inject calpulse in all channels simultaneously (only possible in voltage mode, not a preferred option, only for specific tests)")
+    parser.add_argument("-p", "--parallel", action="store", dest="parallel", help="parallel = all (inject calpulse in all channels) or select (inject calpulse in selected channels) simultaneously (only possible in voltage mode, not a preferred option)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
     parser.add_argument("-t", "--time", action="store", dest="time", help="time = time for which to run the S-bit testing (in minutes)")
     parser.add_argument("-b", "--bxgap", action="store", dest="bxgap", default="500", help="bxgap = Nr. of BX between two L1A's (default = 500 i.e. 12.5 us)")
@@ -410,9 +411,13 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
         sys.exit()
 
-    if args.parallel and cal_mode != "voltage":
-        print (Colors.YELLOW + "CAL_MODE must be voltage for parallel injection" + Colors.ENDC)
-        sys.exit()
+    if args.parallel is not None:
+        if args.parallel not in ["all", "select"]:
+            print (Colors.YELLOW + "Parallel mode can be either all or select" + Colors.ENDC)
+            sys.exit()
+        if cal_mode != "voltage":
+            print (Colors.YELLOW + "CAL_MODE must be voltage for parallel injection" + Colors.ENDC)
+            sys.exit()
 
     cal_dac = -9999
     if args.cal_dac is None:

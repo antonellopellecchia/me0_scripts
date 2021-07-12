@@ -142,7 +142,7 @@ def lpgbt_vfat_reg_scan(system, dac, oh_select, vfat_list, channel_list, lower, 
     for vfat in vfat_list:
         enable_channel = 0
         print("Unconfiguring VFAT %d" % (vfat))
-        for channel in channel_list:
+        for channel in range(0,128):
             enableVfatchannel(vfat, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat, oh_select, 0)
 

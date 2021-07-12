@@ -103,10 +103,15 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, set_cal_mode, 
     print (vfat_list)
     print ("")
 
-    if parallel:
+    if parallel == "all":
         print ("Injecting charge in all channels in parallel\n")
         for vfat in vfat_list:
             for channel in range(0, 128):
+                enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
+    elif parallel == "select":
+        print ("Injecting charge in selected channels in parallel\n")
+        for vfat in vfat_list:
+            for channel in channel_list:
                 enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
     else:
         print ("Injecting charge in channels one at a time\n")
@@ -114,7 +119,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, set_cal_mode, 
     # Looping over channels
     for channel in channel_list:
         print ("Channel: %d"%channel)
-        if not parallel:
+        if parallel is None:
             for vfat in vfat_list:
                 enableVfatchannel(vfat, oh_select, channel, 0, 1) # unmask channel and enable calpulsing
         write_backend_reg(daq_monitor_select_node, channel)
@@ -149,7 +154,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, set_cal_mode, 
             # End of VFAT loop
         # End of charge loop
 
-        if not parallel:
+        if parallel is None:
             for vfat in vfat_list:
                 enableVfatchannel(vfat, oh_select, channel, 1, 0) # mask channel and disable calpulsing
     # End of channel loop
@@ -158,7 +163,7 @@ def lpgbt_vfat_scurve(system, oh_select, vfat_list, channel_list, set_cal_mode, 
     # Disable channels on VFATs
     for vfat in vfat_list:
         print("Unconfiguring VFAT %d" % (vfat))
-        for channel in channel_list:
+        for channel in range(0,128):
             enableVfatchannel(vfat, oh_select, channel, 0, 0) # disable calpulsing on all channels for this VFAT
         configureVfat(0, vfat, oh_select, 0)
 
@@ -183,7 +188,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--vfats", action="store", nargs='+', dest="vfats", help="vfats = list of VFAT numbers (0-23)")
     parser.add_argument("-c", "--channels", action="store", nargs='+', dest="channels", help="channels = list of channels (default: 0-127)")
     parser.add_argument("-m", "--cal_mode", action="store", dest="cal_mode", default = "voltage", help="cal_mode = voltage or current (default = voltage)")
-    parser.add_argument("-p", "--parallel", action="store_true", dest="parallel", help="parallel = inject calpulse in all channels simultaneously (only possible in voltage mode, not a preferred option)")
+    parser.add_argument("-p", "--parallel", action="store", dest="parallel", help="parallel = all (inject calpulse in all channels) or select (inject calpulse in selected channels) simultaneously (only possible in voltage mode, not a preferred option)")
     parser.add_argument("-x", "--threshold", action="store", dest="threshold", help="threshold = the CFG_THR_ARM_DAC value (default=configured value of VFAT)")
     parser.add_argument("-t", "--step", action="store", dest="step", default="1", help="step = Step size for SCurve scan (default=1)")
     parser.add_argument("-n", "--nl1a", action="store", dest="nl1a", help="nl1a = fixed number of L1A cycles")
@@ -243,9 +248,13 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "CAL_MODE must be either voltage or current" + Colors.ENDC)
         sys.exit()
 
-    if args.parallel and cal_mode != "voltage":
-        print (Colors.YELLOW + "CAL_MODE must be voltage for parallel injection" + Colors.ENDC)
-        sys.exit()
+    if args.parallel is not None:
+        if args.parallel not in ["all", "select"]:
+            print (Colors.YELLOW + "Parallel mode can be either all or select" + Colors.ENDC)
+            sys.exit()
+        if cal_mode != "voltage":
+            print (Colors.YELLOW + "CAL_MODE must be voltage for parallel injection" + Colors.ENDC)
+            sys.exit()
 
     threshold = -9999
     if args.threshold is not None:
