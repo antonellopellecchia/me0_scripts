@@ -85,7 +85,14 @@ REGISTER_DAC_MONITOR_MAP = {
 }
 
 def lpgbt_vfat_dac_scan(system, vfat_list, dac_list, lower, upper, step, niter, adc_ref, vref):
-    file_out = open("vfat_dac_scan_output.txt", "w") # OH number, DAC register name, VFAT number, dac scan point, value
+    if not os.path.exists("dac_scan_results"):
+        os.makedirs("dac_scan_results")
+    now = str(datetime.datetime.now())[:16]
+    now = now.replace(":", "_")
+    now = now.replace(" ", "_")
+    foldername = "dac_scan_results/"
+    filename = foldername + "vfat_dac_scan_output_" + now + ".txt"
+    file_out = open(filename,"w+") # OH number, DAC register name, VFAT number, dac scan point, value
     print ("LPGBT VFAT DAC Scan for VFATs:")
     print (vfat_list)
     print ("")
@@ -237,6 +244,16 @@ if __name__ == '__main__':
             print (Colors.YELLOW + "Invalid VFAT number, only allowed 0-11" + Colors.ENDC)
             sys.exit()
         vfat_list.append(v_int)
+
+    oh_match = -9999
+    for vfat in vfat_list:
+        lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
+        if oh_match == -9999:
+            oh_match = oh_select
+        else:
+            if oh_match != oh_select:
+                print (Colors.YELLOW + "Only VFATs belonging to the same OH allowed" + Colors.ENDC)
+                sys.exit()
 
     if args.regs is None:
         print(Colors.YELLOW + "Need list of Registers to scan" + Colors.ENDC)
