@@ -69,6 +69,7 @@ def lpgbt_vfat_bert(system, vfat_list, set_cal_mode, cal_dac, nl1a, runtime, l1a
 
     vfat_oh_link_reset()
     global_reset()
+    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 0)
     sleep(0.1)
 
     link_good_node = {}

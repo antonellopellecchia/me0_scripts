@@ -86,6 +86,8 @@ def lpgbt_phase_scan(system, vfat_list, daq_err, depth, best_phase):
     daq_crc_error      = [[0 for phase in range(16)] for vfat in range(12)]
     errs         = [[0 for phase in range(16)] for vfat in range(12)]
 
+    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 0)
+
     for vfat in vfat_list:
         lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
         check_lpgbt_link_ready(oh_select, gbt_select)
