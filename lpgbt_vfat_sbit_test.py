@@ -154,7 +154,7 @@ def lpgbt_vfat_sbit(system, vfat, elink_list, channel_list, sbit_list, parallel,
         l1a_counter_list[elink]  = {}
         calpulse_counter_list[elink]  = {}
 
-        if parallel:
+        if parallel is None:
             for channel in channel_list[elink]:
                 print("Enabling pulsing on channel %02d in ELINK# %02d:" % (channel, elink))
                 file_out.write("Enabling pulsing on channel %02d in ELINK# %02d:\n" % (channel, elink))
