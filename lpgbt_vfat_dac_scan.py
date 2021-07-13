@@ -35,7 +35,14 @@ REGISTER_DAC_MONITOR_MAP = {
 }
 
 def lpgbt_vfat_dac_scan(system, oh_select, vfat_list, dac_list, lower, upper, step, niter, adc_ref, vref):
-    file_out = open("vfat_dac_scan_output.txt", "w") # OH number, DAC register name, VFAT number, dac scan point, value
+    if not os.path.exists("dac_scan_results"):
+        os.makedirs("dac_scan_results")
+    now = str(datetime.datetime.now())[:16]
+    now = now.replace(":", "_")
+    now = now.replace(" ", "_")
+    foldername = "dac_scan_results/"
+    filename = foldername + "vfat_dac_scan_output_" + now + ".txt"
+    file_out = open(filename,"w+") # OH number, DAC register name, VFAT number, dac scan point, value
     print ("LPGBT VFAT DAC Scan for VFATs:")
     print (vfat_list)
     print ("")
