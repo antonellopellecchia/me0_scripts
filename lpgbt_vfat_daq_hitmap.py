@@ -24,6 +24,7 @@ def lpgbt_vfat_hitmap(system, oh_select, vfat_list, noise, low_thresh, set_cal_m
 
     vfat_oh_link_reset()
     global_reset()
+    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 0)
     sleep(0.1)
 
     daq_data = {}

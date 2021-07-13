@@ -20,6 +20,7 @@ def lpgbt_vfat_crosstalk(system, oh_select, vfat_list, set_cal_mode, cal_dac, nl
 
     vfat_oh_link_reset()
     global_reset()
+    write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 0)
     sleep(0.1)
 
     daq_data = {}

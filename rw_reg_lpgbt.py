@@ -402,6 +402,8 @@ def chc_terminate():
         sys.exit()
 
 def rw_terminate():
+    if system=="backend":
+        write_backend_reg(get_rwreg_node("GEM_AMC.GEM_SYSTEM.VFAT3.SC_ONLY_MODE"), 0)
     if system=="chc":
         chc_terminate()
     sys.exit()
