@@ -3,6 +3,7 @@ from time import sleep, time
 import sys
 import argparse
 import random
+import datetime
 
 # VFAT number: boss/sub, ohid, gbtid, elink
 # For GE2/1 GEB + Pizza
