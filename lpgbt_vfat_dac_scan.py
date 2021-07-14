@@ -3,6 +3,7 @@ from time import sleep, time
 import sys
 import argparse
 import random
+import datetime
 
 REGISTER_DAC_MONITOR_MAP = {
     "CFG_IREF": 0,
