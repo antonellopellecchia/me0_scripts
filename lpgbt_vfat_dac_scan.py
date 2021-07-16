@@ -132,7 +132,7 @@ def lpgbt_vfat_dac_scan(system, vfat_list, dac_list, lower, upper, step, niter, 
                 dac = "CFG_CAL_DAC"
             dac_node[vfat][dac] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.%s" % (oh_select, vfat-6*oh_select, dac))
         vfat_cfg_run_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.CFG_RUN" % (oh_select, vfat-6*oh_select))
-        vfat_cfg_calmode_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%i.GEB.VFAT%d.CFG_CAL_MODE" % (oh_select, vfat-6*oh_select))
+        vfat_cfg_calmode_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.CFG_CAL_MODE" % (oh_select, vfat-6*oh_select))
         adc_monitor_select_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.CFG_MONITOR_SELECT" % (oh_select, vfat-6*oh_select))
         adc0_cached_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.ADC0_CACHED" % (oh_select, vfat-6*oh_select))
         adc0_update_node[vfat] = get_rwreg_node("GEM_AMC.OH.OH%d.GEB.VFAT%d.ADC0_UPDATE" % (oh_select, vfat-6*oh_select))
@@ -193,6 +193,7 @@ def lpgbt_vfat_dac_scan(system, vfat_list, dac_list, lower, upper, step, niter, 
     # Writing results in output file
     for dac in dac_list:
         for vfat in vfat_list:
+            lpgbt, oh_select, gbt_select, elink = vfat_to_oh_gbt_elink(vfat)
             for reg in range(lower,upper+1,step):
                 file_out.write("%d;%s;%d;%d;%d\n"%(oh_select,dac,vfat,reg,dac_scan_results[vfat][dac][reg]))
 
