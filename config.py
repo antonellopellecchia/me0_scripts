@@ -12,7 +12,7 @@ CONFIG_RWREG_CTP7 = {
 }
 
 CONFIG_RWREG_APEX = {
-    'DEVICE'                        : 'FPGA0', # for APEX set this to either FPGA0 or FPGA1
+    'DEVICE'                        : 'FPGA1', # for APEX set this to either FPGA0 or FPGA1
     'BASE_ADDR'                     : 0
 }
 
