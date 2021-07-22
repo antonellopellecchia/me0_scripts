@@ -50,21 +50,8 @@ def vfat_to_oh_gbt_elink(vfat):
     elink = VFAT_TO_ELINK[vfat][3]
     return lpgbt, ohid, gbtid, elink
 
-s_bit_channel_mapping = {}
-print ("")
-if not os.path.isdir("sbit_mapping_results"):
-    print (Colors.YELLOW + "Run the S-bit mapping first" + Colors.ENDC)
-    sys.exit()
-list_of_files = glob.glob("sbit_mapping_results/*.py")
-if len(list_of_files)>1:
-    print ("Mutliple S-bit mapping results found, using latest file")
-latest_file = max(list_of_files, key=os.path.getctime)
-print ("Using S-bit mapping file: %s\n"%(latest_file.split("sbit_mapping_results/")[1]))
-with open(latest_file) as input_file:
-    s_bit_channel_mapping = json.load(input_file)
 
-
-def lpgbt_vfat_sbit(system, vfat_list, channel_list, set_cal_mode, parallel, threshold, step, nl1a, l1a_bxgap):
+def lpgbt_vfat_sbit(system, vfat_list, channel_list, set_cal_mode, parallel, threshold, step, nl1a, l1a_bxgap, s_bit_channel_mapping):
     if not os.path.exists("sbit_scurve_results"):
         os.makedirs("sbit_scurve_results")
     now = str(datetime.datetime.now())[:16]
@@ -144,12 +131,12 @@ def lpgbt_vfat_sbit(system, vfat_list, channel_list, set_cal_mode, parallel, thr
     calpulse_node = get_rwreg_node("GEM_AMC.TTC.CMD_COUNTERS.CALPULSE")
     
     # Nodes for Sbit counters
-    vfat_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_VFAT_SBIT_ME0") # VFAT for reading S-bits
-    elink_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_ELINK_SBIT_ME0") # Node for selecting Elink to count
-    channel_sbit_select_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SEL_SBIT_ME0") # Node for selecting S-bit to count
-    elink_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SBIT0XE_COUNT_ME0") # S-bit counter for elink
-    channel_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.TEST_SBIT0XS_COUNT_ME0") # S-bit counter for specific channel
-    reset_sbit_counter_node = get_rwreg_node("GEM_AMC.GEM_SYSTEM.CTRL.SBIT_TEST_RESET")  # To reset all S-bit counters
+    vfat_sbit_select_node = get_rwreg_node("GEM_AMC.SBIT_ME0.TEST_SEL_VFAT_SBIT_ME0") # VFAT for reading S-bits
+    elink_sbit_select_node = get_rwreg_node("GEM_AMC.SBIT_ME0.TEST_SEL_ELINK_SBIT_ME0") # Node for selecting Elink to count
+    channel_sbit_select_node = get_rwreg_node("GEM_AMC.SBIT_ME0.TEST_SEL_SBIT_ME0") # Node for selecting S-bit to count
+    elink_sbit_counter_node = get_rwreg_node("GEM_AMC.SBIT_ME0.TEST_SBIT0XE_COUNT_ME0") # S-bit counter for elink
+    channel_sbit_counter_node = get_rwreg_node("GEM_AMC.SBIT_ME0.TEST_SBIT0XS_COUNT_ME0") # S-bit counter for specific channel
+    reset_sbit_counter_node = get_rwreg_node("GEM_AMC.SBIT_ME0.CTRL.SBIT_TEST_RESET")  # To reset all S-bit counters
 
     dac_node = {}
     dac = "CFG_CAL_DAC"
@@ -347,6 +334,19 @@ if __name__ == '__main__':
     l1a_timegap = l1a_bxgap * 25 * 0.001 # in microseconds
     print ("Gap between consecutive L1A or CalPulses = %d BX = %.2f us" %(l1a_bxgap, l1a_timegap))
 
+    s_bit_channel_mapping = {}
+    print ("")
+    if not os.path.isdir("sbit_mapping_results"):
+        print (Colors.YELLOW + "Run the S-bit mapping first" + Colors.ENDC)
+        sys.exit()
+    list_of_files = glob.glob("sbit_mapping_results/*.py")
+    if len(list_of_files)>1:
+        print ("Mutliple S-bit mapping results found, using latest file")
+    latest_file = max(list_of_files, key=os.path.getctime)
+    print ("Using S-bit mapping file: %s\n"%(latest_file.split("sbit_mapping_results/")[1]))
+    with open(latest_file) as input_file:
+        s_bit_channel_mapping = json.load(input_file)
+
     # Parsing Registers XML File
     print("Parsing xml file...")
     parseXML()
@@ -362,7 +362,7 @@ if __name__ == '__main__':
     
     # Running Sbit SCurve
     try:
-        lpgbt_vfat_sbit(args.system, vfat_list, channel_list, cal_mode, args.parallel, threshold, step, nl1a, l1a_bxgap)
+        lpgbt_vfat_sbit(args.system, vfat_list, channel_list, cal_mode, args.parallel, threshold, step, nl1a, l1a_bxgap, s_bit_channel_mapping)
     except KeyboardInterrupt:
         print (Colors.RED + "Keyboard Interrupt encountered" + Colors.ENDC)
         rw_terminate()
