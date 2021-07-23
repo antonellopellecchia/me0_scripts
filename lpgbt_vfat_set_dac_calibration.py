@@ -57,6 +57,7 @@ def lpgbt_vfat_set_dac_calibration(system, oh_select, vfat_list, irefs, vrefs):
 
     # Check ready and get nodes
     for vfat in vfat_list:
+        print("Setting calibration parameters for vfat " + str(vfat) + "...")
         iref, vref = irefs[vfat], vrefs[vfat]
 
         lpgbt, gbt_select, elink, gpio = vfat_to_gbt_elink_gpio(vfat)
@@ -120,7 +121,11 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "Enter VFAT numbers" + Colors.ENDC)
         sys.exit()
     vfat_list = []
+<<<<<<< HEAD
     if args.vfat=='all':
+=======
+    if args.vfats[0]=='all':
+>>>>>>> 438fde1... Fix error in reading vfat argument
         vfat_list = range(24)
     else:
         for v in args.vfats:
