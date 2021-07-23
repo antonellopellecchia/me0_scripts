@@ -120,12 +120,15 @@ if __name__ == '__main__':
         print (Colors.YELLOW + "Enter VFAT numbers" + Colors.ENDC)
         sys.exit()
     vfat_list = []
-    for v in args.vfats:
-        v_int = int(v)
-        if v_int not in range(0,24):
-            print (Colors.YELLOW + "Invalid VFAT number, only allowed 0-23" + Colors.ENDC)
-            sys.exit()
-        vfat_list.append(v_int)
+    if args.vfat=='all':
+        vfat_list = range(24)
+    else:
+        for v in args.vfats:
+            v_int = int(v)
+            if v_int not in range(0,24):
+                print (Colors.YELLOW + "Invalid VFAT number, only allowed 0-23" + Colors.ENDC)
+                sys.exit()
+            vfat_list.append(v_int)
 
     if args.iref_file is None:
         print (Colors.YELLOW + "Enter IREF DAC configuration file" + Colors.ENDC)
